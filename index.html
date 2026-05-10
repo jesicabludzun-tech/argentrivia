@@ -1,0 +1,1913 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArgenTrivia - Juego de Trivia sobre Provincias Argentinas</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    .container {
+      max-width: 380px;
+      margin: 0 auto;
+      background: white;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+
+    /* HEADER - Bandera Argentina */
+    .header {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header-franja-top {
+      background-color: #74ACDF;
+      height: 20px;
+    }
+
+    .header-franja-middle {
+      background-color: white;
+      padding: 16px;
+      text-align: center;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .header-title {
+      font-size: 24px;
+      font-weight: bold;
+      color: #74ACDF;
+      margin: 0 0 4px 0;
+    }
+
+    .header-subtitle {
+      font-size: 13px;
+      color: #666;
+      font-weight: 500;
+    }
+
+    .header-franja-bottom {
+      background-color: #74ACDF;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 16px;
+    }
+
+    /* TABS */
+    .tabs {
+      display: flex;
+      background-color: #2563a8;
+      border-bottom: 2px solid #1e4d8b;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 12px 8px;
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+      border-bottom: 3px solid transparent;
+    }
+
+    .tab.active {
+      color: rgba(255,255,255,1);
+      border-bottom-color: white;
+    }
+
+    .tab-icon {
+      font-size: 18px;
+    }
+
+    /* CONTENEDOR DE PANTALLAS */
+    .screens {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      padding: 16px;
+      background: white;
+    }
+
+    .screen:not(.active) {
+      display: none !important;
+    }
+
+    .screen.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* PANTALLA HOME - PROVINCIAS */
+    .score-bar {
+      background-color: #E3F2FD;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .score-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .score-value {
+      font-weight: bold;
+      font-size: 16px;
+      color: #1565C0;
+    }
+
+    .score-label {
+      color: #666;
+      font-size: 11px;
+    }
+
+    /* Selector de dificultad */
+    .difficulty-selector {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .diff-btn {
+      flex: 1;
+      padding: 12px 8px;
+      border: 2px solid transparent;
+      border-radius: 50px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.15s;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .diff-btn.easy {
+      border-color: #43A047;
+      color: #2E7D32;
+    }
+
+    .diff-btn.easy.selected {
+      background-color: #43A047;
+      color: white;
+      box-shadow: 0 3px 0 #2E7D32;
+    }
+
+    .diff-btn.med {
+      border-color: #F9A825;
+      color: #E65100;
+    }
+
+    .diff-btn.med.selected {
+      background-color: #F9A825;
+      color: white;
+      box-shadow: 0 3px 0 #E65100;
+    }
+
+    .diff-btn.hard {
+      border-color: #E53935;
+      color: #B71C1C;
+    }
+
+    .diff-btn.hard.selected {
+      background-color: #E53935;
+      color: white;
+      box-shadow: 0 3px 0 #B71C1C;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #999;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      margin-top: 4px;
+    }
+
+    /* Grilla de provincias */
+    .provinces-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .province-btn {
+      padding: 12px 8px;
+      border: 2px solid #90CAF9;
+      border-bottom: 4px solid #42A5F5;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #ffffff 0%, #E3F2FD 100%);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      color: #1565C0;
+      transition: all 0.1s;
+      box-shadow: 0 4px 0 #1565C0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      min-height: 90px;
+      justify-content: center;
+    }
+
+    .province-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #1565C0;
+      border-bottom: 2px solid #42A5F5;
+    }
+
+    .province-btn.completed-easy {
+      background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+      border-color: #43A047;
+      border-bottom-color: #2E7D32;
+      color: #2E7D32;
+      box-shadow: 0 4px 0 #2E7D32;
+    }
+
+    .province-btn.completed-med {
+      background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+      border-color: #F9A825;
+      border-bottom-color: #E65100;
+      color: #E65100;
+      box-shadow: 0 4px 0 #E65100;
+    }
+
+    .province-btn.completed-hard {
+      background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%);
+      border-color: #E53935;
+      border-bottom-color: #B71C1C;
+      color: #B71C1C;
+      box-shadow: 0 4px 0 #B71C1C;
+    }
+
+    .province-emoji {
+      font-size: 28px;
+    }
+
+    .province-name {
+      font-size: 11px;
+      line-height: 1.2;
+    }
+
+    .province-progress {
+      font-size: 10px;
+      opacity: 0.7;
+    }
+
+    /* PANTALLA PREGUNTA */
+    .question-screen {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .back-btn {
+      background: #E0E0E0;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .province-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .difficulty-badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      color: white;
+    }
+
+    .difficulty-badge.easy {
+      background-color: #43A047;
+    }
+
+    .difficulty-badge.med {
+      background-color: #F9A825;
+    }
+
+    .difficulty-badge.hard {
+      background-color: #E53935;
+    }
+
+    /* Timer */
+    .timer-container {
+      background-color: #E3F2FD;
+      padding: 8px;
+      border-radius: 6px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .timer-bar {
+      flex: 1;
+      height: 6px;
+      background-color: #ddd;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .timer-fill {
+      height: 100%;
+      background-color: #43A047;
+      width: 100%;
+      transition: background-color 0.2s, width 0.1s linear;
+    }
+
+    .timer-fill.warning {
+      background-color: #F9A825;
+    }
+
+    .timer-fill.danger {
+      background-color: #E53935;
+    }
+
+    .timer-text {
+      font-weight: bold;
+      font-size: 14px;
+      color: #1565C0;
+      min-width: 30px;
+      text-align: right;
+    }
+
+    /* Barra de progreso de preguntas */
+    .progress-bar-container {
+      font-size: 12px;
+      font-weight: 600;
+      color: #666;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background-color: #ddd;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background-color: #1565C0;
+      transition: width 0.3s;
+    }
+
+    /* Tarjeta de pregunta */
+    .question-card {
+      background-color: #F5F5F5;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .question-text {
+      font-weight: bold;
+      font-size: 14px;
+      line-height: 1.4;
+      color: #333;
+    }
+
+    /* Opciones */
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .option-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      background-color: white;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+      text-align: left;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: #1565C0;
+      background-color: #E3F2FD;
+    }
+
+    .option-btn:disabled {
+      cursor: not-allowed;
+    }
+
+    .option-letter {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 28px;
+      border: 2px solid #ccc;
+      border-radius: 50%;
+      font-weight: bold;
+      font-size: 12px;
+      background-color: white;
+      color: #666;
+    }
+
+    .option-text {
+      flex: 1;
+    }
+
+    /* Estados de respuesta */
+    .option-btn.correct {
+      background-color: #E8F5E9;
+      border-color: #43A047;
+    }
+
+    .option-btn.correct .option-letter {
+      background-color: #43A047;
+      color: white;
+      border-color: #43A047;
+    }
+
+    .option-btn.incorrect {
+      background-color: #FFEBEE;
+      border-color: #E53935;
+    }
+
+    .option-btn.incorrect .option-letter {
+      background-color: #E53935;
+      color: white;
+      border-color: #E53935;
+    }
+
+    /* Feedback */
+    .feedback {
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      line-height: 1.4;
+      margin-bottom: 12px;
+      border-left: 4px solid;
+    }
+
+    .feedback.correct {
+      background-color: #E8F5E9;
+      border-left-color: #43A047;
+      color: #2E7D32;
+    }
+
+    .feedback.incorrect {
+      background-color: #FFEBEE;
+      border-left-color: #E53935;
+      color: #B71C1C;
+    }
+
+    .feedback.timeout {
+      background-color: #FFF3E0;
+      border-left-color: #F9A825;
+      color: #E65100;
+    }
+
+    .feedback-title {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    /* Botones de siguiente */
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .btn-primary {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      background-color: #1565C0;
+      color: white;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .btn-primary:hover {
+      background-color: #0d47a1;
+    }
+
+    .btn-primary:disabled {
+      background-color: #b0bec5;
+      cursor: not-allowed;
+    }
+
+    /* PANTALLA RESULTADO */
+    .result-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 24px 16px;
+    }
+
+    .result-emoji {
+      font-size: 60px;
+    }
+
+    .result-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #1565C0;
+    }
+
+    .result-stars {
+      font-size: 28px;
+      letter-spacing: 4px;
+    }
+
+    .result-points {
+      font-size: 32px;
+      font-weight: bold;
+      color: #F9A825;
+    }
+
+    .stats-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .stat-card {
+      background-color: #E3F2FD;
+      padding: 12px;
+      border-radius: 6px;
+      text-align: center;
+      border: 2px solid #90CAF9;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: bold;
+      color: #1565C0;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .result-buttons {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .btn-secondary {
+      padding: 12px;
+      border: 2px solid #1565C0;
+      background-color: white;
+      color: #1565C0;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background-color: #E3F2FD;
+    }
+
+    /* PANTALLA RANKING */
+    .ranking-screen {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .name-input-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .name-input {
+      flex: 1;
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    .name-input:focus {
+      outline: none;
+      border-color: #1565C0;
+      background-color: #E3F2FD;
+    }
+
+    .btn-small {
+      padding: 10px 16px;
+      background-color: #1565C0;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .btn-small:hover {
+      background-color: #0d47a1;
+    }
+
+    .podium {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 12px;
+      background-color: #F5F5F5;
+      border-radius: 6px;
+    }
+
+    .podium-place {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .podium-medal {
+      font-size: 24px;
+    }
+
+    .podium-name {
+      font-size: 11px;
+      font-weight: bold;
+      color: #333;
+      line-height: 1.2;
+    }
+
+    .podium-pts {
+      font-size: 10px;
+      color: #666;
+    }
+
+    .leaderboard-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .leaderboard-row {
+      display: grid;
+      grid-template-columns: 30px 1fr 60px 50px;
+      gap: 8px;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #e0e0e0;
+      font-size: 12px;
+    }
+
+    .leaderboard-pos {
+      font-weight: bold;
+      color: #1565C0;
+      text-align: center;
+    }
+
+    .leaderboard-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .leaderboard-name {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .leaderboard-meta {
+      font-size: 10px;
+      color: #999;
+    }
+
+    .leaderboard-pts {
+      font-weight: bold;
+      color: #F9A825;
+      text-align: right;
+    }
+
+    /* PANTALLA PROGRESO */
+    .stats-screen {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .metric-card {
+      background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+      padding: 16px;
+      border-radius: 8px;
+      text-align: center;
+      border: 2px solid #90CAF9;
+    }
+
+    .metric-value {
+      font-size: 28px;
+      font-weight: bold;
+      color: #1565C0;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .progress-section {
+      background-color: #F5F5F5;
+      padding: 12px;
+      border-radius: 6px;
+    }
+
+    .progress-section-title {
+      font-weight: 600;
+      font-size: 12px;
+      color: #333;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .progress-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+
+    .progress-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .progress-label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 60px;
+    }
+
+    .progress-bar-small {
+      flex: 1;
+      height: 8px;
+      background-color: #ddd;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill-small {
+      height: 100%;
+      transition: width 0.3s;
+    }
+
+    .progress-text {
+      font-weight: 600;
+      font-size: 11px;
+      color: #666;
+      min-width: 40px;
+      text-align: right;
+    }
+
+    /* Scrolling */
+    .screens::-webkit-scrollbar,
+    .leaderboard-list::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .screens::-webkit-scrollbar-track,
+    .leaderboard-list::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .screens::-webkit-scrollbar-thumb,
+    .leaderboard-list::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 2px;
+    }
+
+    .screens::-webkit-scrollbar-thumb:hover,
+    .leaderboard-list::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+
+    /* Responsive general */
+    @media (max-height: 600px) {
+      .screen {
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- HEADER -->
+    <div class="header">
+      <div class="header-franja-top"></div>
+      <div class="header-franja-middle">
+        <div class="header-title">🇦🇷 ArgenTrivia</div>
+        <div class="header-subtitle">¡Conocé tu país jugando!</div>
+      </div>
+      <div class="header-franja-bottom">☀️</div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab active" data-tab="home">
+        <div class="tab-icon">🗺️</div>
+        <div>Provincias</div>
+      </button>
+      <button class="tab" data-tab="rank">
+        <div class="tab-icon">🏆</div>
+        <div>Ranking</div>
+      </button>
+      <button class="tab" data-tab="stats">
+        <div class="tab-icon">📊</div>
+        <div>Mi Progreso</div>
+      </button>
+    </div>
+
+    <!-- PANTALLAS -->
+    <div class="screens">
+      <!-- PANTALLA 1: PROVINCIAS -->
+      <div id="home" class="screen active">
+        <div class="score-bar">
+          <div class="score-item">
+            <div class="score-value" id="totalScore">0</div>
+            <div class="score-label">Puntos</div>
+          </div>
+          <div class="score-item">
+            <div class="score-value" id="completedCount">0/24</div>
+            <div class="score-label">Provincias</div>
+          </div>
+          <div class="score-item">
+            <div class="score-value" id="correctPercent">0%</div>
+            <div class="score-label">Aciertos</div>
+          </div>
+        </div>
+
+        <div class="difficulty-selector">
+          <button class="diff-btn easy selected" onclick="setDiff('easy')">● Fácil</button>
+          <button class="diff-btn med" onclick="setDiff('med')">● Medio</button>
+          <button class="diff-btn hard" onclick="setDiff('hard')">● Difícil</button>
+        </div>
+
+        <div class="section-title">Elegí una provincia</div>
+
+        <div class="provinces-grid" id="provincesGrid">
+          <!-- Se rellena con JavaScript -->
+        </div>
+      </div>
+
+      <!-- PANTALLA 2: PREGUNTA -->
+      <div id="question" class="screen question-screen">
+        <div class="question-header">
+          <button class="back-btn" onclick="goHome()">← Volver</button>
+          <div class="province-badge">
+            <span id="qProvinceName">Provincia</span>
+            <span class="difficulty-badge" id="qDiffBadge">easy</span>
+          </div>
+        </div>
+
+        <div class="timer-container">
+          <div class="timer-bar">
+            <div class="timer-fill" id="timerFill"></div>
+          </div>
+          <div class="timer-text" id="timerText">30</div>
+        </div>
+
+        <div class="progress-bar-container">
+          <div id="qProgressText">Pregunta 1 de 5</div>
+          <div class="progress-bar">
+            <div class="progress-bar-fill" id="qProgressBar" style="width: 20%"></div>
+          </div>
+        </div>
+
+        <div class="question-card">
+          <div class="question-text" id="questionText">¿Pregunta?</div>
+        </div>
+
+        <div class="options" id="optionsContainer">
+          <!-- Botones de opciones -->
+        </div>
+
+        <div id="feedbackContainer"></div>
+
+        <div class="action-buttons">
+          <button class="btn-primary" id="nextBtn" onclick="nextQuestion()" style="display: none;">
+            Siguiente →
+          </button>
+        </div>
+      </div>
+
+      <!-- PANTALLA 3: RESULTADO -->
+      <div id="result" class="screen result-screen">
+        <div class="result-emoji" id="resultEmoji">🏆</div>
+        <div class="result-title" id="resultTitle">¡Excelente!</div>
+        <div class="result-stars" id="resultStars">⭐⭐⭐</div>
+        <div class="result-points" id="resultPoints">+75 pts</div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="resultCorrect">5/5</div>
+            <div class="stat-label">Correctas</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="resultAvgTime">12s</div>
+            <div class="stat-label">Tiempo promedio</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="resultStreak">5🔥</div>
+            <div class="stat-label">Racha máxima</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="resultTotal">75 pts</div>
+            <div class="stat-label">Puntos totales</div>
+          </div>
+        </div>
+
+        <div class="result-buttons">
+          <button class="btn-primary" onclick="saveAndAddToLB()">
+            💾 Guardar puntaje
+          </button>
+          <button class="btn-secondary" onclick="startProv(st.currentProv)">
+            Reintentar
+          </button>
+          <button class="btn-secondary" onclick="goHome()">
+            Ver provincias
+          </button>
+        </div>
+      </div>
+
+      <!-- PANTALLA 4: RANKING -->
+      <div id="rank" class="screen ranking-screen">
+        <div class="name-input-group">
+          <input type="text" id="nameInput" class="name-input" placeholder="Tu nombre..." maxlength="20">
+          <button class="btn-small" onclick="quickAddScore()">Agregar</button>
+        </div>
+
+        <div class="podium" id="podium">
+          <div class="podium-place">
+            <div class="podium-medal">🥇</div>
+            <div class="podium-name" id="pos1">-</div>
+            <div class="podium-pts" id="pos1pts">-</div>
+          </div>
+          <div class="podium-place">
+            <div class="podium-medal">🥈</div>
+            <div class="podium-name" id="pos2">-</div>
+            <div class="podium-pts" id="pos2pts">-</div>
+          </div>
+          <div class="podium-place">
+            <div class="podium-medal">🥉</div>
+            <div class="podium-name" id="pos3">-</div>
+            <div class="podium-pts" id="pos3pts">-</div>
+          </div>
+        </div>
+
+        <div class="leaderboard-list" id="leaderboardList">
+          <!-- Se rellena con JavaScript -->
+        </div>
+      </div>
+
+      <!-- PANTALLA 5: MI PROGRESO -->
+      <div id="stats" class="screen stats-screen">
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-value" id="totalPtsMetric">0</div>
+            <div class="metric-label">Puntos Totales</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value" id="correctPercentMetric">0%</div>
+            <div class="metric-label">% Aciertos</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value" id="questionsPlayedMetric">0</div>
+            <div class="metric-label">Preguntas Jugadas</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value" id="questionsCorrectMetric">0</div>
+            <div class="metric-label">Correctas</div>
+          </div>
+        </div>
+
+        <div class="progress-section">
+          <div class="progress-section-title">🟢 Fácil</div>
+          <div class="progress-item">
+            <div class="progress-label">Completadas</div>
+            <div class="progress-bar-small">
+              <div class="progress-bar-fill-small" id="easyBarFill" style="background-color: #43A047; width: 0%"></div>
+            </div>
+            <div class="progress-text" id="easyCount">0/24</div>
+          </div>
+        </div>
+
+        <div class="progress-section">
+          <div class="progress-section-title">🟡 Medio</div>
+          <div class="progress-item">
+            <div class="progress-label">Completadas</div>
+            <div class="progress-bar-small">
+              <div class="progress-bar-fill-small" id="medBarFill" style="background-color: #F9A825; width: 0%"></div>
+            </div>
+            <div class="progress-text" id="medCount">0/24</div>
+          </div>
+        </div>
+
+        <div class="progress-section">
+          <div class="progress-section-title">🔴 Difícil</div>
+          <div class="progress-item">
+            <div class="progress-label">Completadas</div>
+            <div class="progress-bar-small">
+              <div class="progress-bar-fill-small" id="hardBarFill" style="background-color: #E53935; width: 0%"></div>
+            </div>
+            <div class="progress-text" id="hardCount">0/24</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============ PROVINCIAS Y EMOJIS ============
+    const PROVINCES = [
+      { name: 'Buenos Aires', emoji: '🌾' },
+      { name: 'CABA', emoji: '🏙️' },
+      { name: 'Córdoba', emoji: '🏔️' },
+      { name: 'Santa Fe', emoji: '🌻' },
+      { name: 'Mendoza', emoji: '🍇' },
+      { name: 'Tucumán', emoji: '🎋' },
+      { name: 'Entre Ríos', emoji: '🌊' },
+      { name: 'Salta', emoji: '🌵' },
+      { name: 'Misiones', emoji: '🦜' },
+      { name: 'Chaco', emoji: '🌴' },
+      { name: 'Corrientes', emoji: '🐊' },
+      { name: 'Santiago del Estero', emoji: '🌾' },
+      { name: 'San Juan', emoji: '🍷' },
+      { name: 'Jujuy', emoji: '🌈' },
+      { name: 'Río Negro', emoji: '🍎' },
+      { name: 'Neuquén', emoji: '🛢️' },
+      { name: 'Formosa', emoji: '🌿' },
+      { name: 'Chubut', emoji: '🐋' },
+      { name: 'San Luis', emoji: '⛰️' },
+      { name: 'Catamarca', emoji: '🏺' },
+      { name: 'La Rioja', emoji: '🌄' },
+      { name: 'La Pampa', emoji: '🐄' },
+      { name: 'Santa Cruz', emoji: '🧊' },
+      { name: 'Tierra del Fuego', emoji: '🔥' }
+    ];
+
+    // ============ BANCO DE PREGUNTAS (DATOS EDUCATIVOS) ============
+    const QUESTIONS = {
+      "Buenos Aires": {
+        easy: [
+          { q: "¿Cuál es la capital de Argentina?", opts: ["CABA", "Buenos Aires", "Córdoba", "Mendoza"], ans: 0, exp: "CABA (Ciudad Autónoma de Buenos Aires) es la capital de Argentina desde 1880.", illus: "city" },
+          { q: "Buenos Aires limita con:", opts: ["Paraguay", "La Pampa, Santa Fe y Entre Ríos", "Bolivia", "Mendoza, San Juan y La Rioja"], ans: 1, exp: "Buenos Aires limita al oeste con La Pampa, al norte con Santa Fe y al noreste con Entre Ríos.", illus: "map" },
+          { q: "¿Cuál es el río más importante de Buenos Aires?", opts: ["Paraná", "Río de la Plata", "Uruguay", "Salado"], ans: 1, exp: "El Río de la Plata es el río más importante y forma el límite este de Buenos Aires.", illus: "nature" },
+          { q: "¿En qué región de Argentina está Buenos Aires?", opts: ["Noroeste", "Noreste", "Centro-Este", "Patagonia"], ans: 2, exp: "Buenos Aires está ubicada en la región Centro-Este de Argentina.", illus: "map" },
+          { q: "¿Cuál es el plato típico de Buenos Aires?", opts: ["Empanadas", "Asado", "Tamales", "Locro"], ans: 1, exp: "El asado es el plato típico y tradicional de Buenos Aires, especialmente de las zonas rurales.", illus: "food" }
+        ],
+        med: [
+          { q: "¿Qué actividad económica es más importante en Buenos Aires?", opts: ["Ganadería", "Agricultura de granos", "Servicios y comercio", "Minería"], ans: 2, exp: "Los servicios, el comercio y la industria son las principales actividades en CABA, mientras que la ganadería predomina en el resto de la provincia.", illus: "city" },
+          { q: "Buenos Aires representa aproximadamente ¿qué porcentaje de la población argentina?", opts: ["20%", "30%", "40%", "50%"], ans: 2, exp: "Buenos Aires (incluyendo CABA) alberga aproximadamente el 40% de la población argentina.", illus: "map" },
+          { q: "¿Cuál es la principal corriente oceánica que afecta a Buenos Aires?", opts: ["Corriente de Brasil", "Corriente de Humboldt", "Corriente de Malvinas", "Corriente del Golfo"], ans: 2, exp: "La Corriente de Malvinas trae aguas frías desde el sur, influyendo en el clima de Buenos Aires.", illus: "beach" },
+          { q: "¿En qué año se fundó Buenos Aires?", opts: ["1536", "1580", "1776", "1810"], ans: 1, exp: "Buenos Aires fue refundada en 1580 por Juan de Garay (la primera fundación fue en 1536).", illus: "history" },
+          { q: "¿Qué cultivo es predominante en la región agrícola de Buenos Aires?", opts: ["Soja", "Trigo", "Maíz", "Caña de azúcar"], ans: 0, exp: "La soja es el cultivo más importante en la región agrícola bonaerense.", illus: "food" }
+        ],
+        hard: [
+          { q: "¿Cuál es el partido con mayor población en Buenos Aires provincia?", opts: ["Avellaneda", "Quilmes", "La Matanza", "Moreno"], ans: 2, exp: "La Matanza es el partido más poblado de Buenos Aires provincia con más de 1.7 millones de habitantes.", illus: "city" },
+          { q: "¿Qué río forma el límite norte de la provincia de Buenos Aires?", opts: ["Paraná", "Salado", "Río de la Plata", "Luján"], ans: 0, exp: "El río Paraná forma el límite norte entre Buenos Aires y Entre Ríos.", illus: "nature" },
+          { q: "¿Cuál es la extensión aproximada de la provincia de Buenos Aires?", opts: ["100,000 km²", "307,000 km²", "500,000 km²", "150,000 km²"], ans: 1, exp: "Buenos Aires tiene una superficie de aproximadamente 307,571 km², la segunda provincia más grande.", illus: "map" },
+          { q: "¿A cuántos km de Buenos Aires está Mar del Plata?", opts: ["200 km", "300 km", "400 km", "500 km"], ans: 2, exp: "Mar del Plata está aproximadamente a 400 km de CABA, en la costa atlántica.", illus: "beach" },
+          { q: "¿Cuál fue el primer ferrocarril construido en Argentina?", opts: ["Buenos Aires-Tandil", "Buenos Aires-La Plata", "CABA-Flores", "Buenos Aires-Campana"], ans: 1, exp: "El ferrocarril Buenos Aires-La Plata, inaugurado en 1873, fue el primer ferrocarril construido en Argentina.", illus: "train" }
+        ]
+      },
+      "CABA": {
+        easy: [
+          { q: "¿Cuántas comunas tiene CABA?", opts: ["15", "18", "20", "25"], ans: 1, exp: "CABA está dividida en 15 comunas desde 2008 para la descentralización administrativa.", illus: "city" },
+          { q: "¿Cuál es el barrio más turístico de CABA?", opts: ["San Telmo", "La Boca", "Palermo", "Recoleta"], ans: 1, exp: "La Boca es conocida por su famoso Caminito, sus casas de colores y su rica historia del tango.", illus: "tango" },
+          { q: "¿Qué monumento famoso está en la Plaza de Mayo?", opts: ["Pirámide de Mayo", "Casa Rosada", "Catedral", "Todas las anteriores"], ans: 3, exp: "En la Plaza de Mayo están la Pirámide de Mayo, la Casa Rosada y la Catedral.", illus: "city" },
+          { q: "¿De cuántas personas aproximadamente es la población de CABA?", opts: ["1 millón", "2 millones", "3 millones", "4 millones"], ans: 1, exp: "CABA tiene una población de aproximadamente 2.8 millones de habitantes en la ciudad capital.", illus: "city" },
+          { q: "¿Qué río rodea a CABA?", opts: ["Paraná", "Salado", "Río de la Plata", "Uruguay"], ans: 2, exp: "El Río de la Plata rodea a CABA y forma su límite este con Uruguay.", illus: "nature" }
+        ],
+        med: [
+          { q: "¿En qué año se otorgó autonomía a Buenos Aires?", opts: ["1880", "1994", "2000", "1910"], ans: 1, exp: "En 1994, CABA recibió autonomía administrativa y se cambió su nombre a Ciudad Autónoma de Buenos Aires.", illus: "history" },
+          { q: "¿Cuál es el barrio donde nació el tango?", opts: ["San Telmo", "La Boca", "Palermo", "San Cristóbal"], ans: 0, exp: "El tango nació en San Telmo y La Boca en las últimas décadas del siglo XIX.", illus: "tango" },
+          { q: "¿Qué museo importante alberga arte latinoamericano en CABA?", opts: ["MALBA", "Museo del Prado", "Metropolitan", "Louvre"], ans: 0, exp: "El MALBA (Museo de Arte Latinoamericano de Buenos Aires) es uno de los museos más importantes de arte moderno.", illus: "culture" },
+          { q: "¿Cuántos metros de profundidad tiene el Río de la Plata en CABA?", opts: ["3-5 metros", "10-15 metros", "20-30 metros", "40+ metros"], ans: 2, exp: "El Río de la Plata tiene profundidades variables, alcanzando más de 30 metros en algunos puntos frente a CABA.", illus: "beach" },
+          { q: "¿En qué barrio está ubicado el Teatro Colón?", opts: ["Recoleta", "Belgrano", "San Cristóbal", "Balvanera"], ans: 3, exp: "El Teatro Colón está ubicado en el barrio de San Cristóbal, en Balvanera, un ícono cultural de CABA.", illus: "culture" }
+        ],
+        hard: [
+          { q: "¿Cuál es la edad promedio de la población de CABA?", opts: ["28 años", "35 años", "42 años", "50 años"], ans: 2, exp: "CABA tiene una de las poblaciones más envejecidas de Argentina con edad promedio de alrededor de 42 años.", illus: "city" },
+          { q: "¿Qué movimiento artístico originó en San Telmo en 2003?", opts: ["Arte callejero", "Feria de Antigüedades", "Street art", "Danza contemporánea"], ans: 1, exp: "La Feria de Antigüedades de San Telmo es una tradición que atrae a turistas desde los años 70.", illus: "culture" },
+          { q: "¿Cuál es la tasa de alfabetismo en CABA?", opts: ["92%", "96%", "98.5%", "99%"], ans: 2, exp: "CABA tiene una de las tasas de alfabetismo más altas de América Latina, superior al 98%.", illus: "city" },
+          { q: "¿Qué barrio es conocido por su concentración de galerías de arte?", opts: ["San Cristóbal", "Palermo", "La Boca", "Recoleta"], ans: 1, exp: "Palermo, especialmente Palermo Soho, es conocido por sus galerías, bares y vida nocturna cosmopolita.", illus: "culture" },
+          { q: "¿En qué año se inauguró el Subterráneo de CABA?", opts: ["1890", "1913", "1930", "1950"], ans: 1, exp: "El primer subterráneo de CABA se inauguró en 1913, siendo el primero en América del Sur.", illus: "subway" }
+        ]
+      },
+      "Córdoba": {
+        easy: [
+          { q: "¿Cuál es la capital de Córdoba?", opts: ["Rosario", "Córdoba", "Mendoza", "La Plata"], ans: 1, exp: "La ciudad de Córdoba es la capital de la provincia de Córdoba.", illus: "city" },
+          { q: "Córdoba es la provincia ¿más poblada/segunda provincia?", opts: ["Más poblada", "Segunda provincia más poblada", "Tercera", "Cuarta"], ans: 1, exp: "Córdoba es la segunda provincia más poblada de Argentina después de Buenos Aires.", illus: "map" },
+          { q: "¿Cuál es el río principal de Córdoba?", opts: ["Paraná", "Salado", "Suquía", "Uruguay"], ans: 2, exp: "El río Suquía es el río principal que atraviesa la provincia de Córdoba.", illus: "nature" },
+          { q: "¿En qué región está ubicada Córdoba?", opts: ["Noroeste", "Centro", "Sur", "Este"], ans: 1, exp: "Córdoba está ubicada en la región Centro de Argentina.", illus: "map" },
+          { q: "¿Qué caracteriza el terreno de Córdoba?", opts: ["Playas", "Montañas bajas", "Llanuras", "Glaciares"], ans: 2, exp: "Córdoba se caracteriza principalmente por sus llanuras y algunas sierras de baja altura.", illus: "mountain" }
+        ],
+        med: [
+          { q: "¿Cuál es la principal actividad económica en Córdoba?", opts: ["Turismo", "Ganadería y agricultura", "Pesca", "Minería"], ans: 1, exp: "La ganadería y la agricultura, especialmente de trigo y soja, son las principales actividades económicas.", illus: "food" },
+          { q: "¿En qué año fue fundada la ciudad de Córdoba?", opts: ["1536", "1573", "1600", "1650"], ans: 1, exp: "La ciudad de Córdoba fue fundada en 1573 por Jerónimo Luis de Cabrera.", illus: "history" },
+          { q: "¿Qué universidad importante fue fundada en Córdoba en 1613?", opts: ["UBA", "UNLP", "Universidad Nacional de Córdoba", "Universidad Católica"], ans: 2, exp: "La Universidad Nacional de Córdoba, fundada en 1613, es la segunda universidad más antigua de América del Sur.", illus: "culture" },
+          { q: "¿Qué evento histórico sucedió en Córdoba en 1955?", opts: ["Revolución Libertadora", "Batalla de Caseros", "Reforma Constitucional", "Guerra de la Triple Alianza"], ans: 0, exp: "La Revolución Libertadora derrocó el gobierno de Perón en 1955, con enfrentamientos en Córdoba.", illus: "history" },
+          { q: "¿Cuántos kilómetros cuadrados tiene la provincia de Córdoba?", opts: ["80,000", "165,000", "200,000", "300,000"], ans: 1, exp: "Córdoba tiene una superficie de aproximadamente 165,374 km², siendo la cuarta provincia más grande.", illus: "map" }
+        ],
+        hard: [
+          { q: "¿Cuál es la población de la ciudad de Córdoba?", opts: ["500,000", "1 millón", "1.3 millones", "2 millones"], ans: 2, exp: "La ciudad de Córdoba tiene una población de aproximadamente 1.3 millones de habitantes.", illus: "city" },
+          { q: "¿Qué sector industrial importante se desarrolló en Córdoba?", opts: ["Automotriz", "Textil", "Farmacéutico", "Electrónico"], ans: 0, exp: "La industria automotriz es un sector importante en Córdoba, con presencia de grandes fábricas.", illus: "factory" },
+          { q: "¿En qué período Córdoba fue cuna de revoluciones políticas?", opts: ["Siglo XVI", "Siglo XVII", "Siglo XIX-XX", "Siglo XXI"], ans: 2, exp: "Durante el siglo XIX y XX, Córdoba fue escenario de importantes revoluciones y movimientos políticos.", illus: "history" },
+          { q: "¿Qué zonas serranas tiene Córdoba?", opts: ["Sierra de Córdoba", "Sierras de Pocho y Comechingones", "Ambas", "Ninguna"], ans: 2, exp: "Córdoba tiene varias sierras como la Sierra de Córdoba, Sierra de Comechingones y Sierra de Pocho.", illus: "mountain" },
+          { q: "¿Cuál es la industria vitivinícola de Córdoba?", opts: ["Muy importante", "Moderada", "Inexistente", "En decadencia"], ans: 1, exp: "Aunque existen viñedos en Córdoba, la industria vitivinícola es más importante en Mendoza y La Rioja.", illus: "wine" }
+        ]
+      },
+      "Santa Fe": {
+        easy: [
+          { q: "¿Cuál es la capital de Santa Fe?", opts: ["Rosario", "Santa Fe", "Paraná", "Corrientes"], ans: 1, exp: "La ciudad de Santa Fe es la capital de la provincia de Santa Fe.", illus: "city" },
+          { q: "¿Qué ríos importantes atraviesan Santa Fe?", opts: ["Paraná y Uruguay", "Paraná y Salado", "Salado y Río de la Plata", "Uruguay y Río de la Plata"], ans: 1, exp: "El río Paraná y el río Salado son los principales ríos que atraviesan Santa Fe.", illus: "nature" },
+          { q: "¿En qué región está Santa Fe?", opts: ["Noroeste", "Noreste", "Centro-Norte", "Sur"], ans: 2, exp: "Santa Fe está ubicada en la región Centro-Norte de Argentina.", illus: "map" },
+          { q: "¿Cuál es el plato típico de Santa Fe?", opts: ["Empanadas", "Locro", "Chivito", "Chipá"], ans: 1, exp: "El locro es un plato tradicional de la región, aunque las empanadas santafesinas también son famosas.", illus: "food" },
+          { q: "¿A qué se dedica principalmente Santa Fe económicamente?", opts: ["Ganadería", "Agricultura", "Turismo", "Minería"], ans: 1, exp: "La agricultura es la principal actividad económica de Santa Fe, especialmente la producción de granos.", illus: "food" }
+        ],
+        med: [
+          { q: "¿En qué año fue fundada la ciudad de Santa Fe?", opts: ["1513", "1580", "1605", "1673"], ans: 2, exp: "La ciudad de Santa Fe fue fundada en 1605 por Juan de Garay.", illus: "history" },
+          { q: "¿Qué evento importante sucedió en Santa Fe en 1853?", opts: ["Reforma Constitucional", "Primera Constitución Nacional", "Reforma Electoral", "Batalla de Caseros"], ans: 1, exp: "La Constitución Nacional Argentina fue sancionada en Santa Fe en 1853.", illus: "history" },
+          { q: "¿Cuál es la segunda ciudad más importante de Santa Fe?", opts: ["Santa Fe", "Rosario", "Paraná", "Venado Tuerto"], ans: 1, exp: "Rosario es la segunda ciudad en importancia de Santa Fe y un importante puerto fluvial.", illus: "city" },
+          { q: "¿Cuántos kilómetros cuadrados tiene Santa Fe?", opts: ["80,000", "100,000", "130,000", "200,000"], ans: 2, exp: "Santa Fe tiene una superficie de aproximadamente 133,007 km², siendo la séptima provincia más grande.", illus: "map" },
+          { q: "¿Qué puerto importante existe en Rosario?", opts: ["Puerto Belgrano", "Puerto Rosario", "Puerto Boca", "Puerto Iguazú"], ans: 1, exp: "El Puerto de Rosario es uno de los puertos más importantes de Argentina para la exportación de granos.", illus: "beach" }
+        ],
+        hard: [
+          { q: "¿Cuál es la producción agrícola más importante de Santa Fe?", opts: ["Trigo", "Maíz", "Soja", "Girasol"], ans: 2, exp: "La soja es el principal cultivo de Santa Fe, seguido por el maíz y el trigo.", illus: "food" },
+          { q: "¿Cuántos habitantes tiene Rosario?", opts: ["500,000", "800,000", "1 millón", "1.3 millones"], ans: 1, exp: "Rosario tiene aproximadamente 900,000 habitantes, siendo la tercera ciudad más poblada de Argentina.", illus: "city" },
+          { q: "¿Qué industria se desarrolló en Santa Fe en el siglo XX?", opts: ["Siderúrgica", "Manufacturera", "Petroquímica", "Todas las anteriores"], ans: 3, exp: "En Santa Fe se desarrollaron diversas industrias manufactureras, petroquímicas y metalúrgicas en el siglo XX.", illus: "factory" },
+          { q: "¿Qué corredor productivo existe en Santa Fe?", opts: ["Corredor Bioceánico", "Corredor Agrícola", "Corredor Tecnológico", "Corredor Industrial"], ans: 0, exp: "El Corredor Bioceánico conecta Santa Fe con Bolivia y Chile, permitiendo el comercio regional.", illus: "map" },
+          { q: "¿Cuál es la población total de Santa Fe?", opts: ["2 millones", "2.5 millones", "3 millones", "3.5 millones"], ans: 2, exp: "Santa Fe tiene una población de aproximadamente 3.2 millones de habitantes.", illus: "city" }
+        ]
+      },
+      "Mendoza": {
+        easy: [
+          { q: "¿Qué es lo más famoso de Mendoza?", opts: ["Montañas", "Viñedos y vino", "Playas", "Glaciares"], ans: 1, exp: "Mendoza es famosa en todo el mundo por sus viñedos y la producción de excelentes vinos.", illus: "wine" },
+          { q: "¿Cuál es la capital de Mendoza?", opts: ["Mendoza", "San Juan", "Chilecito", "Catamarca"], ans: 0, exp: "La ciudad de Mendoza es la capital de la provincia de Mendoza.", illus: "city" },
+          { q: "¿Qué montaña importante está en Mendoza?", opts: ["Nevado Ruiz", "Aconcagua", "Sajama", "Licancabur"], ans: 1, exp: "El Aconcagua es la montaña más alta de América con 6,961 metros, ubicada en Mendoza.", illus: "mountain" },
+          { q: "¿En qué región está Mendoza?", opts: ["Noreste", "Centro", "Cuyo", "Patagonia"], ans: 2, exp: "Mendoza está ubicada en la región de Cuyo, al oeste de Argentina.", illus: "map" },
+          { q: "¿Qué río importante riega Mendoza?", opts: ["Paraná", "Río Mendoza", "Salado", "Río Colorado"], ans: 1, exp: "El Río Mendoza es fundamental para la agricultura y el riego de la provincia.", illus: "nature" }
+        ],
+        med: [
+          { q: "¿Cuándo comenzó la industria vitivinícola en Mendoza?", opts: ["Siglo XVI", "Siglo XVII", "Siglo XVIII", "Siglo XIX"], ans: 3, exp: "La industria vitivinícola en Mendoza se expandió significativamente en el siglo XIX con la llegada de inmigrantes.", illus: "wine" },
+          { q: "¿Qué porcentaje de vino argentino produce Mendoza?", opts: ["50%", "60%", "75%", "90%"], ans: 2, exp: "Mendoza produce aproximadamente el 75% del vino que se produce en Argentina.", illus: "wine" },
+          { q: "¿En qué año fue refundada la ciudad de Mendoza?", opts: ["1561", "1580", "1778", "1861"], ans: 3, exp: "La ciudad de Mendoza fue refundada en 1861 tras el terremoto de 1861 que la destruyó.", illus: "history" },
+          { q: "¿Cuántos kilómetros cuadrados tiene Mendoza?", opts: ["80,000", "150,000", "200,000", "250,000"], ans: 1, exp: "Mendoza tiene una superficie de aproximadamente 150,839 km², siendo la quinta provincia más grande.", illus: "map" },
+          { q: "¿Qué variedad de uva es predominante en Mendoza?", opts: ["Merlot", "Cabernet Sauvignon", "Malbec", "Pinot Noir"], ans: 2, exp: "El Malbec es la variedad más icónica y producida en Mendoza, de excelente calidad.", illus: "wine" }
+        ],
+        hard: [
+          { q: "¿Cuál es la altura promedio de Mendoza?", opts: ["500 m", "700 m", "900 m", "1200 m"], ans: 1, exp: "Mendoza está ubicada a una altura promedio de aproximadamente 700 metros sobre el nivel del mar.", illus: "map" },
+          { q: "¿Cuántos habitantes tiene la provincia de Mendoza?", opts: ["1 millón", "1.3 millones", "1.7 millones", "2 millones"], ans: 1, exp: "Mendoza tiene una población de aproximadamente 1.7 millones de habitantes.", illus: "city" },
+          { q: "¿Qué valle vitivinícola es famoso en Mendoza?", opts: ["Valle de Uco", "Valle del Inca", "Valle de Yocavil", "Valle de Lerma"], ans: 0, exp: "El Valle de Uco es uno de los principales valles productores de vino en Mendoza.", illus: "wine" },
+          { q: "¿Cuál es el clima predominante en Mendoza?", opts: ["Templado", "Subtropical", "Árido", "Desértico"], ans: 3, exp: "Mendoza tiene un clima predominantemente desértico, con muy pocas precipitaciones anuales.", illus: "desert" },
+          { q: "¿En qué año se libró la batalla de Maipú en Mendoza?", opts: ["1810", "1815", "1818", "1824"], ans: 2, exp: "En 1818 se libró la Batalla de Maipú, importante batalla de la independencia que se planeó desde Mendoza.", illus: "history" }
+        ]
+      },
+      "Tucumán": {
+        easy: [
+          { q: "¿Por qué es famoso Tucumán?", opts: ["Viñedos", "Caña de azúcar", "Minería", "Petróleo"], ans: 1, exp: "Tucumán es famoso por su producción de caña de azúcar y la elaboración de azúcar.", illus: "food" },
+          { q: "¿Cuál es la capital de Tucumán?", opts: ["Tucumán", "San Miguel de Tucumán", "Tafí del Valle", "Amaicha"], ans: 1, exp: "La ciudad de San Miguel de Tucumán es la capital de la provincia de Tucumán.", illus: "city" },
+          { q: "¿En qué región está Tucumán?", opts: ["Centro", "Noreste", "Noroeste", "Cuyo"], ans: 2, exp: "Tucumán está ubicada en la región Noroeste de Argentina.", illus: "map" },
+          { q: "¿Qué evento histórico ocurrió en Tucumán en 1816?", opts: ["Independencia de Argentina", "Reforma Constitucional", "Revolución de Mayo", "Guerra del Paraguay"], ans: 0, exp: "En 1816, en Tucumán se declaró la Independencia de Argentina en el Congreso de Tucumán.", illus: "history" },
+          { q: "¿Cuál es el río principal de Tucumán?", opts: ["Paraná", "Salado", "Río Grande", "Río Dorado"], ans: 2, exp: "El Río Grande es el río principal que atraviesa la provincia de Tucumán.", illus: "nature" }
+        ],
+        med: [
+          { q: "¿Cuándo fue declarada la Independencia Argentina en Tucumán?", opts: ["9 de julio de 1816", "25 de mayo de 1810", "10 de noviembre de 1817", "3 de febrero de 1820"], ans: 0, exp: "La Independencia de Argentina fue declarada el 9 de julio de 1816 en Tucumán, de ahí la celebración del 9 de julio.", illus: "history" },
+          { q: "¿Cuál es el monumento más importante en Tucumán?", opts: ["Catedral", "Casa Histórica", "Plaza Independencia", "Basílica de San Francisco"], ans: 1, exp: "La Casa Histórica de Tucumán es donde se declaró la Independencia y es un patrimonio histórico importante.", illus: "history" },
+          { q: "¿En qué año fue fundada la ciudad de Tucumán?", opts: ["1542", "1565", "1685", "1750"], ans: 0, exp: "La ciudad de San Miguel de Tucumán fue fundada en 1542 por el conquistador Juan Pérez de Zurita.", illus: "history" },
+          { q: "¿Cuántos kilómetros cuadrados tiene Tucumán?", opts: ["20,000", "30,000", "40,000", "50,000"], ans: 1, exp: "Tucumán tiene una superficie de aproximadamente 22,524 km², siendo la segunda provincia más pequeña.", illus: "map" },
+          { q: "¿Qué industria es importante en Tucumán además del azúcar?", opts: ["Vino", "Algodón", "Tabaco", "Frutas"], ans: 2, exp: "El tabaco es una industria importante en Tucumán, además de la caña de azúcar y las frutas.", illus: "food" }
+        ],
+        hard: [
+          { q: "¿Cuál es la población de San Miguel de Tucumán?", opts: ["300,000", "450,000", "600,000", "800,000"], ans: 2, exp: "San Miguel de Tucumán tiene una población de aproximadamente 580,000 habitantes.", illus: "city" },
+          { q: "¿Qué partido político argentino fue fundado en Tucumán?", opts: ["Radicales", "Peronistas", "Conservadores", "Socialistas"], ans: 2, exp: "El Partido Conservador Argentino tuvo un importante desarrollo en Tucumán durante el siglo XIX.", illus: "history" },
+          { q: "¿Cuál es la superficie total de Tucumán?", opts: ["Más de 50,000 km²", "Menos de 30,000 km²", "Entre 30-40,000 km²", "Más de 100,000 km²"], ans: 1, exp: "Tucumán tiene aproximadamente 22,524 km², siendo la segunda provincia más pequeña después de Formosa.", illus: "map" },
+          { q: "¿Qué tipo de clima predomina en Tucumán?", opts: ["Árido", "Subtropical húmedo", "Templado", "Tropical"], ans: 1, exp: "Tucumán tiene un clima subtropical húmedo con precipitaciones abundantes durante el verano.", illus: "nature" },
+          { q: "¿Cuál es la población total de la provincia de Tucumán?", opts: ["1 millón", "1.2 millones", "1.5 millones", "1.8 millones"], ans: 1, exp: "Tucumán tiene una población de aproximadamente 1.4 millones de habitantes.", illus: "city" }
+        ]
+      }
+    };
+
+    // Agregar el resto de provincias con preguntas similares...
+    // Por brevedad, he incluido las 6 primeras. Aquí continuarías con:
+    // Entre Ríos, Salta, Misiones, Chaco, Corrientes, Santiago del Estero, San Juan, Jujuy,
+    // Río Negro, Neuquén, Formosa, Chubut, San Luis, Catamarca, La Rioja, La Pampa, Santa Cruz, Tierra del Fuego
+
+    // Para completar rápidamente, voy a extender con provincias mínimas:
+    // Completar las provincias restantes con preguntas educativas
+    QUESTIONS["Entre Ríos"] = {
+      easy: [
+        { q: "¿Cuál es la capital de Entre Ríos?", opts: ["Concordia", "Paraná", "Gualeguay", "Colón"], ans: 1, exp: "Paraná es la capital de la provincia de Entre Ríos.", illus: "city" },
+        { q: "¿Qué dos ríos importantes limitan a Entre Ríos?", opts: ["Paraná y Uruguay", "Paraná y Salado", "Uruguay y Salado", "Paraná y Río de la Plata"], ans: 0, exp: "El río Paraná limita al oeste y el río Uruguay al este, por eso se llama 'Entre Ríos'.", illus: "nature" },
+        { q: "¿Qué caracteriza el terreno de Entre Ríos?", opts: ["Montañas altas", "Desierto árido", "Llanuras fértiles", "Glaciares"], ans: 2, exp: "Entre Ríos se caracteriza por sus llanuras fértiles, ideales para la ganadería y agricultura.", illus: "nature" },
+        { q: "¿Cuál es la principal actividad económica de Entre Ríos?", opts: ["Turismo", "Minería", "Ganadería y agricultura", "Pesca"], ans: 2, exp: "La ganadería y agricultura son las principales actividades económicas de Entre Ríos.", illus: "food" },
+        { q: "¿A qué se debe el nombre 'Entre Ríos'?", opts: ["Está entre dos ríos", "Tiene muchos ríos", "Rio entre dos ciudades", "Nada de lo anterior"], ans: 0, exp: "El nombre proviene de su ubicación geográfica entre los ríos Paraná y Uruguay.", illus: "map" }
+      ],
+      med: [
+        { q: "¿Cuándo fue fundada la ciudad de Paraná?", opts: ["1730", "1780", "1810", "1850"], ans: 0, exp: "Paraná fue fundada en 1730 y es la segunda capital más antigua de Argentina.", illus: "history" },
+        { q: "¿Qué batallas importantes ocurrieron en Entre Ríos?", opts: ["Batalla de Caseros", "Batalla de Maipo", "Batalla de Moreno", "Batalla de San Martín"], ans: 0, exp: "La Batalla de Caseros en 1852 fue decisiva en la historia argentina y tuvo lugar en Entre Ríos.", illus: "history" },
+        { q: "¿Cuál es la población de Paraná?", opts: ["150,000", "250,000", "350,000", "450,000"], ans: 1, exp: "Paraná tiene aproximadamente 250,000 habitantes.", illus: "city" },
+        { q: "¿Qué cultivo es importante en Entre Ríos?", opts: ["Caña de azúcar", "Arroz", "Soja", "Uva"], ans: 2, exp: "La soja es un cultivo importante en Entre Ríos, junto con el arroz en zonas específicas.", illus: "food" },
+        { q: "¿Cuántos kilómetros cuadrados tiene Entre Ríos?", opts: ["70,000", "80,000", "90,000", "100,000"], ans: 1, exp: "Entre Ríos tiene una superficie de aproximadamente 78,781 km².", illus: "map" }
+      ],
+      hard: [
+        { q: "¿Qué provincia formó parte del plan de Urquiza?", opts: ["Corrientes", "Santiago del Estero", "La Rioja", "Jujuy"], ans: 0, exp: "Justo José de Urquiza, gobernador de Entre Ríos, fue una figura importante con Corrientes en la historia política.", illus: "history" },
+        { q: "¿En qué año se creó la provincia de Entre Ríos?", opts: ["1810", "1853", "1860", "1880"], ans: 1, exp: "Entre Ríos se organizó como provincia en la Constitución Nacional de 1853.", illus: "history" },
+        { q: "¿Qué ciudades importantes tiene Entre Ríos?", opts: ["Concordia y Gualeguay", "Colón y Concepción del Uruguay", "Todas las anteriores", "Ninguna"], ans: 2, exp: "Ciudades importantes incluyen Paraná (capital), Concordia, Colón y Concepción del Uruguay.", illus: "city" },
+        { q: "¿Qué tipo de clima tiene Entre Ríos?", opts: ["Subtropical", "Templado", "Árido", "Tropical"], ans: 1, exp: "Entre Ríos tiene un clima templado-subtropical con precipitaciones regulares.", illus: "nature" },
+        { q: "¿Cuál es la industria importante de Concordia?", opts: ["Vino", "Arroz", "Tabaco", "Naranjas"], ans: 3, exp: "Concordia es famosa por su producción de naranjas y otros cítricos.", illus: "food" }
+      ]
+    };
+
+    QUESTIONS["Salta"] = {
+      easy: [
+        { q: "¿Cuál es la capital de Salta?", opts: ["San Salvador de Jujuy", "Salta", "Tartagal", "Orán"], ans: 1, exp: "Salta es la capital de la provincia de Salta.", illus: "city" },
+        { q: "¿En qué región de Argentina está Salta?", opts: ["Centro", "Cuyo", "Noreste", "Noroeste"], ans: 3, exp: "Salta está ubicada en el noroeste de Argentina.", illus: "map" },
+        { q: "¿Qué característica geográfica importante tiene Salta?", opts: ["Playas", "Montañas altas", "Desierto", "Glaciares"], ans: 1, exp: "Salta se caracteriza por sus montañas y zonas montañosas de gran altitud.", illus: "mountain" },
+        { q: "¿Cuál es un plato típico de Salta?", opts: ["Milanesa", "Empanadas salteñas", "Asado", "Locro"], ans: 1, exp: "Las empanadas salteñas son famosas en toda Argentina por su sabor único.", illus: "food" },
+        { q: "¿Qué río importante atraviesa Salta?", opts: ["Paraná", "Río Salado", "Uruguay", "Pilcomayo"], ans: 3, exp: "El río Pilcomayo es un río importante que marca el límite norte de Salta.", illus: "nature" }
+      ],
+      med: [
+        { q: "¿Cuándo fue fundada la ciudad de Salta?", opts: ["1582", "1610", "1680", "1750"], ans: 0, exp: "La ciudad de Salta fue fundada el 16 de abril de 1582 por Hernando de Lerma.", illus: "history" },
+        { q: "¿Qué evento importante ocurrió en Salta en 1813?", opts: ["Batalla de Salta", "Declaración de Independencia", "Revolución de Mayo", "Reforma Constitucional"], ans: 0, exp: "La Batalla de Salta en 1813 fue una victoria importante de Manuel Belgrano.", illus: "history" },
+        { q: "¿Cuál es la población de la ciudad de Salta?", opts: ["250,000", "400,000", "550,000", "700,000"], ans: 2, exp: "Salta tiene una población de aproximadamente 535,000 habitantes.", illus: "city" },
+        { q: "¿Qué atracción turística importante tiene Salta?", opts: ["Cataratas", "Cerro de las Siete Colores", "Glaciares", "Playas"], ans: 1, exp: "El Cerro de las Siete Colores de Purmamarca es una atracción turística icónica de Salta.", illus: "mountain" },
+        { q: "¿Qué tipo de vegetación predomina en Salta?", opts: ["Bosques húmedos", "Desierto", "Selva", "Estepa"], ans: 2, exp: "En el norte de Salta predominan zonas de selva subtropical, mientras que en el sur hay zonas más áridas.", illus: "nature" }
+      ],
+      hard: [
+        { q: "¿Cuál es la altura promedio de Salta?", opts: ["500 m", "1000 m", "1500 m", "2000 m"], ans: 2, exp: "Salta está ubicada a una altura promedio de aproximadamente 1,200 metros sobre el nivel del mar.", illus: "mountain" },
+        { q: "¿Qué cultura prehispánica tuvo presencia en Salta?", opts: ["Aztecas", "Mayas", "Diaguitas", "Incas"], ans: 3, exp: "La cultura Inca tuvo presencia e influencia en Salta, especialmente en las zonas montañosas.", illus: "culture" },
+        { q: "¿Cuántos kilómetros cuadrados tiene Salta?", opts: ["100,000", "150,000", "200,000", "250,000"], ans: 1, exp: "Salta tiene una superficie de aproximadamente 155,488 km².", illus: "map" },
+        { q: "¿Qué iglesia importante está en Salta?", opts: ["Catedral Metropolitana", "Basílica de Luján", "Templo de Córdoba", "Catedral de Buenos Aires"], ans: 0, exp: "La Catedral Metropolitana de Salta es un importante patrimonio arquitectónico colonial.", illus: "church" },
+        { q: "¿Qué actividad económica es importante en Salta?", opts: ["Minería de litio", "Petróleo", "Caña de azúcar", "Todas las anteriores"], ans: 3, exp: "Salta tiene importantes depósitos de litio en el noroeste, petróleo en el norte y cultivo de caña de azúcar.", illus: "factory" }
+      ]
+    };
+
+    QUESTIONS["Misiones"] = {
+      easy: [
+        { q: "¿Cuál es la capital de Misiones?", opts: ["Oberá", "Puerto Iguazú", "Eldorado", "Posadas"], ans: 3, exp: "Posadas es la capital de la provincia de Misiones.", illus: "city" },
+        { q: "¿Dónde están las famosas Cataratas del Iguazú?", opts: ["Entre Ríos", "Misiones", "Corrientes", "Salta"], ans: 1, exp: "Las Cataratas del Iguazú están ubicadas en Misiones, en el norte de la provincia.", illus: "waterfall" },
+        { q: "¿Qué tipo de clima tiene Misiones?", opts: ["Árido", "Subtropical húmedo", "Templado", "Desértico"], ans: 1, exp: "Misiones tiene un clima subtropical húmedo con precipitaciones abundantes.", illus: "nature" },
+        { q: "¿Qué caracteriza el territorio de Misiones?", opts: ["Llanuras", "Selva subtropical", "Desierto", "Montañas nevadas"], ans: 1, exp: "Misiones se caracteriza por sus selvas subtropicales y vegetación exuberante.", illus: "nature" },
+        { q: "¿Qué cultivo importante se produce en Misiones?", opts: ["Viña", "Tabaco", "Yerba mate", "Café"], ans: 2, exp: "La yerba mate es el cultivo más importante de Misiones.", illus: "food" }
+      ],
+      med: [
+        { q: "¿Cuándo fueron descubiertas las Cataratas del Iguazú por europeos?", opts: ["1500", "1541", "1610", "1750"], ans: 1, exp: "Las Cataratas del Iguazú fueron descubiertas por europeos en 1541 por Álvar Núñez Cabeza de Vaca.", illus: "history" },
+        { q: "¿Cuál es la altura de las Cataratas del Iguazú?", opts: ["30 metros", "80 metros", "150 metros", "200 metros"], ans: 1, exp: "Las Cataratas del Iguazú tienen una altura de aproximadamente 80 metros.", illus: "waterfall" },
+        { q: "¿Cuántos kilómetros cuadrados tiene Misiones?", opts: ["25,000", "30,000", "40,000", "50,000"], ans: 1, exp: "Misiones tiene una superficie de aproximadamente 29,801 km², siendo la provincia más pequeña de Argentina.", illus: "map" },
+        { q: "¿Qué cantidad de yerba mate produce Misiones anualmente?", opts: ["50,000 ton", "100,000 ton", "200,000 ton", "300,000 ton"], ans: 2, exp: "Misiones produce aproximadamente 200,000 toneladas de yerba mate anualmente.", illus: "food" },
+        { q: "¿Cuál es la población de Misiones?", opts: ["800,000", "1 millón", "1.1 millones", "1.3 millones"], ans: 2, exp: "Misiones tiene una población de aproximadamente 1.1 millones de habitantes.", illus: "city" }
+      ],
+      hard: [
+        { q: "¿Qué significa 'Iguazú' en lengua guaraní?", opts: ["Agua grande", "Agua blanca", "Agua caída", "Aguas grandes"], ans: 3, exp: "'Iguazú' significa 'aguas grandes' en lengua guaraní, el idioma nativo de la región.", illus: "culture" },
+        { q: "¿En qué año se declaró Patrimonio de la Humanidad las Cataratas del Iguazú?", opts: ["1984", "1990", "2000", "2010"], ans: 0, exp: "Las Cataratas del Iguazú fueron declaradas Patrimonio de la Humanidad por la UNESCO en 1984.", illus: "history" },
+        { q: "¿Cuál es la producción de té en Misiones?", opts: ["10,000 ton", "30,000 ton", "50,000 ton", "80,000 ton"], ans: 1, exp: "Misiones produce aproximadamente 40,000 toneladas de té anualmente.", illus: "food" },
+        { q: "¿Qué universidad importante está en Misiones?", opts: ["UNAM", "Universidad Nacional de Misiones", "Universidad de Buenos Aires", "Universidad Católica"], ans: 1, exp: "La Universidad Nacional de Misiones (UNaM) es la principal institución educativa superior de la provincia.", illus: "culture" },
+        { q: "¿Cuántas cataratas componen las Cataratas del Iguazú?", opts: ["50", "100", "150", "Más de 200"], ans: 3, exp: "Las Cataratas del Iguazú están compuestas por más de 275 cataratas individuales.", illus: "waterfall" }
+      ]
+    };
+
+    QUESTIONS["Chaco"] = {
+      easy: [
+        { q: "¿Cuál es la capital de Chaco?", opts: ["Corrientes", "Resistencia", "Formosa", "Misiones"], ans: 1, exp: "Resistencia es la capital de la provincia de Chaco.", illus: "city" },
+        { q: "¿En qué región está Chaco?", opts: ["Centro", "Noreste", "Noroeste", "Cuyo"], ans: 1, exp: "Chaco está ubicada en el noreste de Argentina.", illus: "map" },
+        { q: "¿Qué caracteriza el clima de Chaco?", opts: ["Templado", "Subtropical húmedo", "Árido", "Desértico"], ans: 1, exp: "Chaco tiene un clima subtropical húmedo con temperaturas altas.", illus: "nature" },
+        { q: "¿Qué río importante limita a Chaco?", opts: ["Paraná", "Río Paraguay", "Uruguay", "Salado"], ans: 1, exp: "El río Paraná limita al este de Chaco y lo separa de Misiones.", illus: "nature" },
+        { q: "¿Qué es lo más característico de Chaco?", opts: ["Viñedos", "Selva", "Desierto", "Glaciares"], ans: 1, exp: "Chaco se caracteriza por sus selvas subtropicales y zonas boscosas.", illus: "nature" }
+      ],
+      med: [
+        { q: "¿Cuándo fue fundada Resistencia?", opts: ["1740", "1878", "1900", "1920"], ans: 1, exp: "La ciudad de Resistencia fue fundada en 1878.", illus: "history" },
+        { q: "¿Cuál es la población de Resistencia?", opts: ["150,000", "250,000", "350,000", "450,000"], ans: 1, exp: "Resistencia tiene aproximadamente 310,000 habitantes.", illus: "city" },
+        { q: "¿Qué evento importante ocurrió en Chaco en 1932?", opts: ["Batalla de Caseros", "Guerra del Chaco", "Revolución", "Terremoto"], ans: 1, exp: "La Guerra del Chaco (1932-1935) fue un conflicto entre Paraguay y Bolivia con influencia en Argentina.", illus: "history" },
+        { q: "¿Cuántos kilómetros cuadrados tiene Chaco?", opts: ["80,000", "100,000", "120,000", "150,000"], ans: 1, exp: "Chaco tiene una superficie de aproximadamente 99,633 km².", illus: "map" },
+        { q: "¿Qué cultivo es importante en Chaco?", opts: ["Caña de azúcar", "Algodón", "Soja", "Tabaco"], ans: 1, exp: "El algodón es un cultivo tradicional importante en Chaco.", illus: "food" }
+      ],
+      hard: [
+        { q: "¿Cuál es la población total de Chaco?", opts: ["800,000", "900,000", "1 millón", "1.1 millones"], ans: 2, exp: "Chaco tiene una población de aproximadamente 1 millón de habitantes.", illus: "city" },
+        { q: "¿Qué grupo indígena habita en Chaco?", opts: ["Mapuches", "Wichís", "Aymaras", "Diaguitas"], ans: 1, exp: "Los Wichís son uno de los principales grupos indígenas que habitan en Chaco.", illus: "culture" },
+        { q: "¿Qué tipo de vegetación predomina en Chaco?", opts: ["Bosque chaqueño", "Selva amazónica", "Estepa", "Desierto"], ans: 0, exp: "El Bosque Chaqueño es la vegetación predominante en la provincia.", illus: "nature" },
+        { q: "¿Cuál es la principal industria de Chaco además de la agricultura?", opts: ["Petróleo", "Textil", "Madera", "Minería"], ans: 2, exp: "La industria maderera es importante en Chaco, junto con productos forestales.", illus: "factory" },
+        { q: "¿Qué río forma el límite sur de Chaco?", opts: ["Paraná", "Salado", "Río Paraguay", "Pilcomayo"], ans: 1, exp: "El río Salado forma el límite sur entre Chaco y Santa Fe.", illus: "nature" }
+      ]
+    };
+
+    QUESTIONS["Corrientes"] = {
+      easy: [
+        { q: "¿Cuál es la capital de Corrientes?", opts: ["Oberá", "Corrientes", "Goya", "Paso de la Cruz"], ans: 1, exp: "Corrientes es la capital de la provincia de Corrientes.", illus: "city" },
+        { q: "¿Qué caracteriza geográficamente a Corrientes?", opts: ["Montañas", "Llanuras y humedales", "Desierto", "Glaciares"], ans: 1, exp: "Corrientes se caracteriza por sus llanuras y humedales, especialmente los Esteros del Iberá.", illus: "wetland" },
+        { q: "¿Qué es el Iberá?", opts: ["Un río", "Un lago", "Un sistema de esteros", "Una ciudad"], ans: 2, exp: "El Iberá es un importante sistema de esteros y humedales único en Argentina.", illus: "wetland" },
+        { q: "¿En qué región está Corrientes?", opts: ["Centro", "Cuyo", "Noreste", "Sur"], ans: 2, exp: "Corrientes está ubicada en el noreste de Argentina.", illus: "map" },
+        { q: "¿Qué río importante limita a Corrientes?", opts: ["Salado", "Paraná", "Uruguay", "Pilcomayo"], ans: 1, exp: "El río Paraná limita al oeste de Corrientes, separándola de Misiones.", illus: "nature" }
+      ],
+      med: [
+        { q: "¿Cuándo fue fundada la ciudad de Corrientes?", opts: ["1588", "1620", "1680", "1750"], ans: 0, exp: "La ciudad de Corrientes fue fundada el 3 de abril de 1588.", illus: "history" },
+        { q: "¿Cuál es la población de la ciudad de Corrientes?", opts: ["150,000", "200,000", "250,000", "350,000"], ans: 2, exp: "Corrientes tiene aproximadamente 230,000 habitantes.", illus: "city" },
+        { q: "¿Qué evento importante ocurrió en Corrientes en 1865?", opts: ["Batalla de Gavinete", "Batalla de Caseros", "Independencia", "Reforma Constitucional"], ans: 0, exp: "La Batalla de Gavinete fue un importante enfrentamiento durante la época de Mitre.", illus: "history" },
+        { q: "¿Cuántos kilómetros cuadrados tiene Corrientes?", opts: ["80,000", "88,000", "100,000", "120,000"], ans: 1, exp: "Corrientes tiene una superficie de aproximadamente 88,199 km².", illus: "map" },
+        { q: "¿Cuál es la población total de Corrientes?", opts: ["800,000", "950,000", "1.1 millones", "1.3 millones"], ans: 1, exp: "Corrientes tiene una población de aproximadamente 1 millón de habitantes.", illus: "city" }
+      ],
+      hard: [
+        { q: "¿Qué fauna importante habita en los Esteros del Iberá?", opts: ["Caimanes", "Ciervos de los pantanos", "Yacares", "Todas las anteriores"], ans: 3, exp: "Los Esteros del Iberá albergan yacares, ciervos de los pantanos, caimanes y una biodiversidad única.", illus: "jaguar" },
+        { q: "¿En qué año se creó la provincia de Corrientes?", opts: ["1810", "1853", "1860", "1880"], ans: 1, exp: "Corrientes se organizó como provincia en la Constitución Nacional de 1853.", illus: "history" },
+        { q: "¿Qué es el 'Mitos de Corrientes'?", opts: ["Un mito", "Festival de danzas", "Carnavales de Corrientes", "Tradición musical"], ans: 2, exp: "Los Carnavales de Corrientes son famosos en toda Argentina por sus comparsas y danzas.", illus: "culture" },
+        { q: "¿Cuál es la importancia del Iberá?", opts: ["Turismo", "Biodiversidad", "Investigación", "Todas las anteriores"], ans: 3, exp: "El Iberá es importante para el turismo, la conservación de biodiversidad y la investigación científica.", illus: "wetland" },
+        { q: "¿Qué tipo de clima tiene Corrientes?", opts: ["Subtropical seco", "Subtropical húmedo", "Templado", "Tropical"], ans: 1, exp: "Corrientes tiene un clima subtropical húmedo con precipitaciones abundantes.", illus: "nature" }
+      ]
+    };
+
+    QUESTIONS["Santiago del Estero"] = {
+      easy: [
+        { q: "¿Cuál es la capital de Santiago del Estero?", opts: ["Santiago del Estero", "La Banda", "Termas de Río Hondo", "Frías"], ans: 0, exp: "Santiago del Estero es la capital de la provincia de Santiago del Estero.", illus: "city" },
+        { q: "¿En qué región está Santiago del Estero?", opts: ["Noroeste", "Noreste", "Centro", "Cuyo"], ans: 0, exp: "Santiago del Estero está ubicada en el noroeste de Argentina.", illus: "map" },
+        { q: "¿Qué es lo más característico de Santiago del Estero?", opts: ["Playas", "Bosques secos", "Montañas altas", "Glaciares"], ans: 1, exp: "Santiago del Estero se caracteriza por sus bosques secos y clima árido-semiárido.", illus: "nature" },
+        { q: "¿Qué cultivo es importante en Santiago del Estero?", opts: ["Viña", "Algodón", "Soja", "Caña de azúcar"], ans: 1, exp: "El algodón es el cultivo más característico de Santiago del Estero.", illus: "food" },
+        { q: "¿Qué clima tiene Santiago del Estero?", opts: ["Subtropical", "Tropical", "Árido semiárido", "Templado"], ans: 2, exp: "Santiago del Estero tiene un clima árido a semiárido con precipitaciones limitadas.", illus: "steppe" }
+      ],
+      med: [
+        { q: "¿Cuándo fue fundada Santiago del Estero?", opts: ["1550", "1553", "1580", "1600"], ans: 1, exp: "Santiago del Estero fue fundada el 25 de julio de 1553, siendo la ciudad más antigua de Argentina.", illus: "history" },
+        { q: "¿Cuál es la población de Santiago del Estero?", opts: ["150,000", "200,000", "250,000", "350,000"], ans: 2, exp: "Santiago del Estero tiene aproximadamente 250,000 habitantes.", illus: "city" },
+        { q: "¿Cuántos kilómetros cuadrados tiene Santiago del Estero?", opts: ["75,000", "85,000", "95,000", "105,000"], ans: 1, exp: "Santiago del Estero tiene una superficie de aproximadamente 136,351 km².", illus: "map" },
+        { q: "¿Qué música tradicional es característica de Santiago del Estero?", opts: ["Tango", "Chacarera", "Marinera", "Cumbia"], ans: 1, exp: "La Chacarera es la música y danza tradicional característica de Santiago del Estero.", illus: "music" },
+        { q: "¿Cuál es la población total de Santiago del Estero?", opts: ["700,000", "800,000", "900,000", "1 millón"], ans: 2, exp: "Santiago del Estero tiene una población de aproximadamente 900,000 habitantes.", illus: "city" }
+      ],
+      hard: [
+        { q: "¿Por qué es importante Santiago del Estero históricamente?", opts: ["Fue capital del Virreinato", "Es la ciudad más antigua", "Centro minero", "Puerto importante"], ans: 1, exp: "Santiago del Estero es la ciudad más antigua de Argentina, fundada en 1553.", illus: "history" },
+        { q: "¿Qué grupo indígena habitaba en Santiago del Estero?", opts: ["Mapuches", "Diaguitas", "Aymaras", "Ranqueles"], ans: 1, exp: "Los Diaguitas fueron los principales habitantes prehispánicos de Santiago del Estero.", illus: "culture" },
+        { q: "¿Qué río importante atraviesa Santiago del Estero?", opts: ["Paraná", "Salado del Norte", "Uruguay", "Pilcomayo"], ans: 1, exp: "El Salado del Norte es el río principal que atraviesa Santiago del Estero.", illus: "nature" },
+        { q: "¿Cuál es la industria principal de Santiago del Estero?", opts: ["Minería", "Manufactura", "Algodón y ganadería", "Turismo"], ans: 2, exp: "La ganadería y el cultivo de algodón son las principales industrias de Santiago del Estero.", illus: "food" },
+        { q: "¿Qué caracteriza el bosque de Santiago del Estero?", opts: ["Bosque húmedo", "Bosque chaqueño", "Selva", "Estepa"], ans: 1, exp: "El Bosque Chaqueño es la vegetación característica del este de Santiago del Estero.", illus: "nature" }
+      ]
+    };
+
+    // Continuar con las 12 provincias restantes...
+    // Provincias restantes con preguntas educativas
+    QUESTIONS["San Juan"] = {
+      easy: [
+        { q: "¿Cuál es la capital de San Juan?", opts: ["Jáchal", "San Juan", "Caucete", "Rawson"], ans: 1, exp: "San Juan es la capital de la provincia de San Juan.", illus: "city" },
+        { q: "¿En qué región está San Juan?", opts: ["Centro", "Cuyo", "Patagonia", "Noroeste"], ans: 1, exp: "San Juan está ubicada en la región de Cuyo, al oeste de Argentina.", illus: "map" },
+        { q: "¿Qué cultivo importante se produce en San Juan?", opts: ["Caña de azúcar", "Uva", "Soja", "Tabaco"], ans: 1, exp: "La uva es el cultivo más importante de San Juan, con produción de vinos y uva de mesa.", illus: "wine" },
+        { q: "¿Qué caracteriza el clima de San Juan?", opts: ["Subtropical", "Templado", "Árido", "Tropical"], ans: 2, exp: "San Juan tiene un clima árido con muy pocas precipitaciones.", illus: "desert" },
+        { q: "¿Qué montaña importante está cercana a San Juan?", opts: ["Aconcagua", "San Valentín", "Mercedario", "Tupungato"], ans: 2, exp: "El Mercedario es una importante montaña cercana a San Juan con 6,720 metros de altura.", illus: "mountain" }
+      ],
+      med: [
+        { q: "¿Cuándo fue fundada San Juan?", opts: ["1562", "1604", "1680", "1750"], ans: 0, exp: "San Juan fue fundada el 13 de junio de 1562 por Juan Jufré.", illus: "history" },
+        { q: "¿Cuántos kilómetros cuadrados tiene San Juan?", opts: ["85,000", "95,000", "110,000", "125,000"], ans: 2, exp: "San Juan tiene una superficie de aproximadamente 89,651 km².", illus: "map" },
+        { q: "¿Cuál es la población de San Juan?", opts: ["500,000", "650,000", "750,000", "850,000"], ans: 1, exp: "San Juan tiene una población de aproximadamente 660,000 habitantes.", illus: "city" },
+        { q: "¿Qué evento importante ocurrió en San Juan en 1944?", opts: ["Terremoto", "Inundación", "Sequía", "Erupción"], ans: 0, exp: "Un devastador terremoto destruyó San Juan en 1944, matando a miles de personas.", illus: "history" },
+        { q: "¿Qué tipo de energía se genera en San Juan?", opts: ["Hidráulica", "Solar", "Eólica", "Nuclear"], ans: 1, exp: "San Juan tiene un importante potencial solar debido a su clima árido y despejado.", illus: "factory" }
+      ],
+      hard: [
+        { q: "¿Cuál es el río principal de San Juan?", opts: ["Paraná", "Río San Juan", "Uruguay", "Salado"], ans: 1, exp: "El Río San Juan es el río principal que riega la provincia.", illus: "nature" },
+        { q: "¿Qué porcentaje de la producción nacional de uva representa San Juan?", opts: ["20%", "30%", "40%", "50%"], ans: 2, exp: "San Juan produce aproximadamente el 40% de la uva nacional.", illus: "wine" },
+        { q: "¿Cuál es la altura de San Juan sobre el nivel del mar?", opts: ["500 m", "650 m", "750 m", "900 m"], ans: 1, exp: "San Juan está ubicada a una altura de aproximadamente 650 metros sobre el nivel del mar.", illus: "mountain" },
+        { q: "¿Qué universidad importante está en San Juan?", opts: ["UNSJ", "UNCuyo", "UNA", "UNR"], ans: 0, exp: "La Universidad Nacional de San Juan (UNSJ) es la principal institución educativa de la provincia.", illus: "culture" },
+        { q: "¿Cuál es la población total de San Juan?", opts: ["650,000", "700,000", "750,000", "800,000"], ans: 2, exp: "San Juan tiene una población total de aproximadamente 750,000 habitantes.", illus: "city" }
+      ]
+    };
+
+    QUESTIONS["Jujuy"] = {
+      easy: [
+        { q: "¿Cuál es la capital de Jujuy?", opts: ["Purmamarca", "San Salvador de Jujuy", "Palpalá", "Tilcara"], ans: 1, exp: "San Salvador de Jujuy es la capital de la provincia de Jujuy.", illus: "city" },
+        { q: "¿En qué región está Jujuy?", opts: ["Centro", "Cuyo", "Noreste", "Noroeste"], ans: 3, exp: "Jujuy está ubicada en el noroeste de Argentina, limítrofe con Bolivia.", illus: "map" },
+        { q: "¿Qué atracción turística importante tiene Jujuy?", opts: ["Cerro de las Siete Colores", "Cataratas", "Glaciares", "Playas"], ans: 0, exp: "El Cerro de las Siete Colores en Purmamarca es una atracción turística icónica.", illus: "mountain" },
+        { q: "¿Qué caracteriza el paisaje de Jujuy?", opts: ["Llanuras", "Montañas y valles", "Desierto", "Selva"], ans: 1, exp: "Jujuy se caracteriza por sus montañas, valles y paisajes andinos.", illus: "mountain" },
+        { q: "¿Qué departamento de Jujuy es famoso por sus minas de litio?", opts: ["Cochinoca", "Palpalá", "Tilcara", "Purmamarca"], ans: 0, exp: "Cochinoca es conocido por sus importantes depósitos de litio en el Triángulo del Litio.", illus: "factory" }
+      ],
+      med: [
+        { q: "¿Cuándo fue fundada San Salvador de Jujuy?", opts: ["1563", "1593", "1613", "1680"], ans: 1, exp: "San Salvador de Jujuy fue fundada el 23 de abril de 1593.", illus: "history" },
+        { q: "¿Cuál es la población de San Salvador de Jujuy?", opts: ["150,000", "200,000", "250,000", "350,000"], ans: 1, exp: "San Salvador de Jujuy tiene aproximadamente 220,000 habitantes.", illus: "city" },
+        { q: "¿Cuántos kilómetros cuadrados tiene Jujuy?", opts: ["50,000", "65,000", "80,000", "95,000"], ans: 1, exp: "Jujuy tiene una superficie de aproximadamente 53,548 km².", illus: "map" },
+        { q: "¿Qué batalla importante ocurrió en Jujuy en 1812?", opts: ["Batalla de Purmamarca", "Batalla de Jujuy", "Exodo Jujeño", "Batalla de Tilcara"], ans: 2, exp: "El Éxodo Jujeño en 1812 fue una retirada estratégica importante durante la guerra de independencia.", illus: "history" },
+        { q: "¿Cuál es la población total de Jujuy?", opts: ["500,000", "600,000", "700,000", "800,000"], ans: 1, exp: "Jujuy tiene una población total de aproximadamente 600,000 habitantes.", illus: "city" }
+      ],
+      hard: [
+        { q: "¿Qué significa Jujuy?", opts: ["Agua", "Tierra", "Montaña", "Pueblo"], ans: 3, exp: "Jujuy significa 'pueblo' en lengua quechua.", illus: "culture" },
+        { q: "¿Cuál es la altura de San Salvador de Jujuy?", opts: ["500 m", "700 m", "1000 m", "1200 m"], ans: 3, exp: "San Salvador de Jujuy está ubicada a una altura de aproximadamente 1,238 metros.", illus: "mountain" },
+        { q: "¿Qué porcentaje mundial de litio se encuentra en Jujuy?", opts: ["5%", "10%", "15%", "20%"], ans: 3, exp: "La provincia de Jujuy contiene aproximadamente el 20% de las reservas mundiales de litio.", illus: "factory" },
+        { q: "¿Qué grupo indígena tiene presencia en Jujuy?", opts: ["Mapuches", "Andinos (Quechuas)", "Ranqueles", "Guaraníes"], ans: 1, exp: "Los pueblos andinos de origen quechua tienen importante presencia en Jujuy.", illus: "culture" },
+        { q: "¿Cuál es el río más importante de Jujuy?", opts: ["Paraná", "Río Grande", "Uruguay", "Pilcomayo"], ans: 1, exp: "El Río Grande es el río principal que atraviesa Jujuy.", illus: "nature" }
+      ]
+    };
+
+    QUESTIONS["Río Negro"] = {
+      easy: [
+        { q: "¿Cuál es la capital de Río Negro?", opts: ["San Antonio Oeste", "Viedma", "Bariloche", "General Roca"], ans: 1, exp: "Viedma es la capital de la provincia de Río Negro.", illus: "city" },
+        { q: "¿Qué caracteriza a Bariloche?", opts: ["Playas tropicales", "Lagos y montañas nevadas", "Desierto", "Llanuras"], ans: 1, exp: "Bariloche es famosa por sus lagos y montañas nevadas, ideal para esquí.", illus: "mountain" },
+        { q: "¿En qué región está Río Negro?", opts: ["Centro", "Cuyo", "Noroeste", "Patagonia"], ans: 3, exp: "Río Negro está ubicada en la región de Patagonia, al sur de Argentina.", illus: "map" },
+        { q: "¿Qué fruta es característica de Río Negro?", opts: ["Uva", "Fresa", "Manzana", "Cereza"], ans: 2, exp: "La manzana es el cultivo más importante de Río Negro.", illus: "apple" },
+        { q: "¿Qué río importante limita con Río Negro?", opts: ["Paraná", "Río Colorado", "Uruguay", "Salado"], ans: 1, exp: "El río Colorado marca el límite sur de Río Negro con La Pampa.", illus: "nature" }
+      ],
+      med: [
+        { q: "¿Cuántos kilómetros cuadrados tiene Río Negro?", opts: ["150,000", "190,000", "220,000", "250,000"], ans: 1, exp: "Río Negro tiene una superficie de aproximadamente 203,013 km².", illus: "map" },
+        { q: "¿Cuál es la población de Bariloche?", opts: ["100,000", "130,000", "160,000", "200,000"], ans: 2, exp: "Bariloche tiene una población de aproximadamente 130,000 habitantes.", illus: "city" },
+        { q: "¿Cuál es la población de Viedma?", opts: ["40,000", "60,000", "80,000", "100,000"], ans: 1, exp: "Viedma tiene aproximadamente 60,000 habitantes.", illus: "city" },
+        { q: "¿Qué cultivo es importante en el Valle de Río Negro?", opts: ["Viña", "Manzana y pera", "Soja", "Algodón"], ans: 1, exp: "La manzana y la pera son los cultivos principales del Valle de Río Negro.", illus: "food" },
+        { q: "¿Cuál es la población total de Río Negro?", opts: ["500,000", "600,000", "700,000", "800,000"], ans: 1, exp: "Río Negro tiene una población total de aproximadamente 620,000 habitantes.", illus: "city" }
+      ],
+      hard: [
+        { q: "¿Cuándo se creó la provincia de Río Negro?", opts: ["1880", "1884", "1900", "1920"], ans: 1, exp: "Río Negro se creó como provincia en 1884.", illus: "history" },
+        { q: "¿Cuál es el lago más importante de Río Negro?", opts: ["Nahuel Huapi", "Tréveleo", "Colhué Huapi", "Pueyrredón"], ans: 0, exp: "El Nahuel Huapi es el lago más importante y donde está ubicada Bariloche.", illus: "lake" },
+        { q: "¿Qué parque nacional importante está en Río Negro?", opts: ["Iguazú", "Perito Moreno", "Nahuel Huapi", "Talampaya"], ans: 2, exp: "El Parque Nacional Nahuel Huapi es uno de los más visitados de Argentina.", illus: "nature" },
+        { q: "¿Cuál es la altitud de Bariloche?", opts: ["500 m", "800 m", "1000 m", "1300 m"], ans: 1, exp: "Bariloche está ubicada a una altura de aproximadamente 770 metros sobre el nivel del mar.", illus: "mountain" },
+        { q: "¿Qué industria es importante en Bariloche además del turismo?", opts: ["Tecnología", "Ganadería", "Vino", "Minería"], ans: 0, exp: "Bariloche es un centro importante de desarrollo tecnológico y de software en Argentina.", illus: "factory" }
+      ]
+    };
+
+    QUESTIONS["Neuquén"] = {
+      easy: [
+        { q: "¿Cuál es la capital de Neuquén?", opts: ["San Martín de los Andes", "Neuquén", "Zapala", "Ploveler"], ans: 1, exp: "Neuquén es la capital de la provincia de Neuquén.", illus: "city" },
+        { q: "¿Qué recurso importante tiene Neuquén?", opts: ["Viña", "Petróleo", "Manzanas", "Algodón"], ans: 1, exp: "Neuquén es una región productora importante de petróleo y gas natural.", illus: "factory" },
+        { q: "¿En qué región está Neuquén?", opts: ["Cuyo", "Centro", "Patagonia", "Noroeste"], ans: 2, exp: "Neuquén está ubicada en la Patagonia, al sur de Argentina.", illus: "map" },
+        { q: "¿Qué lago importante está en Neuquén?", opts: ["Nahuel Huapi", "Lácar", "Colhué Huapi", "Pueyrredón"], ans: 0, exp: "El Nahuel Huapi es un lago importante que limita entre Neuquén y Río Negro.", illus: "lake" },
+        { q: "¿Qué caracteriza el clima de Neuquén?", opts: ["Subtropical", "Templado", "Árido patagónico", "Tropical"], ans: 2, exp: "Neuquén tiene un clima árido patagónico con temperaturas bajas.", illus: "steppe" }
+      ],
+      med: [
+        { q: "¿Cuándo se creó la provincia de Neuquén?", opts: ["1880", "1884", "1904", "1920"], ans: 2, exp: "Neuquén se creó como provincia en 1904.", illus: "history" },
+        { q: "¿Cuántos kilómetros cuadrados tiene Neuquén?", opts: ["100,000", "125,000", "150,000", "175,000"], ans: 2, exp: "Neuquén tiene una superficie de aproximadamente 94,078 km².", illus: "map" },
+        { q: "¿Cuál es la población de Neuquén?", opts: ["250,000", "300,000", "350,000", "400,000"], ans: 2, exp: "Neuquén tiene una población de aproximadamente 330,000 habitantes.", illus: "city" },
+        { q: "¿Qué destino turístico importante está en Neuquén?", opts: ["Bariloche", "San Martín de los Andes", "Salta", "Mendoza"], ans: 1, exp: "San Martín de los Andes es un destino turístico importante en Neuquén.", illus: "mountain" },
+        { q: "¿Cuál es la población total de Neuquén?", opts: ["500,000", "550,000", "600,000", "650,000"], ans: 1, exp: "Neuquén tiene una población total de aproximadamente 600,000 habitantes.", illus: "city" }
+      ],
+      hard: [
+        { q: "¿Cuál es la producción de petróleo de Neuquén?", opts: ["20% del total nacional", "35% del total nacional", "50% del total nacional", "60% del total nacional"], ans: 2, exp: "Neuquén produce aproximadamente el 50% del petróleo argentino.", illus: "factory" },
+        { q: "¿Cuál es el río más importante de Neuquén?", opts: ["Paraná", "Río Neuquén", "Uruguay", "Río Colorado"], ans: 1, exp: "El Río Neuquén es el río principal que forma parte del sistema hídrico patagónico.", illus: "nature" },
+        { q: "¿Qué altura tiene San Martín de los Andes?", opts: ["700 m", "900 m", "1200 m", "1400 m"], ans: 3, exp: "San Martín de los Andes está a una altura de aproximadamente 1,400 metros sobre el nivel del mar.", illus: "mountain" },
+        { q: "¿Qué parque nacional está en Neuquén?", opts: ["Iguazú", "Lanín", "Perito Moreno", "Talampaya"], ans: 1, exp: "El Parque Nacional Lanín es un importante parque protegido en Neuquén.", illus: "nature" },
+        { q: "¿Cuál es el potencial de gas natural en Neuquén?", opts: ["5% mundial", "10% mundial", "15% mundial", "20% mundial"], ans: 1, exp: "Neuquén tiene aproximadamente el 10% de las reservas de gas natural mundial.", illus: "factory" }
+      ]
+    };
+
+    // Formosa, Chubut, San Luis, Catamarca, La Rioja, La Pampa, Santa Cruz, Tierra del Fuego
+    const lastProvinces = {
+      "Formosa": { easy: [{ q: "¿Cuál es la capital de Formosa?", opts: ["Corrientes", "Formosa", "Misiones", "Chaco"], ans: 1, exp: "Formosa es la capital de la provincia de Formosa.", illus: "city" }, { q: "¿Dónde está Formosa?", opts: ["Centro", "Noreste", "Noroeste", "Sur"], ans: 1, exp: "Formosa está en el noreste de Argentina.", illus: "map" }, { q: "¿Qué río importante limita Formosa?", opts: ["Paraná", "Río Paraguay", "Uruguay", "Pilcomayo"], ans: 1, exp: "El Río Paraguay marca el límite este y norte de Formosa.", illus: "nature" }, { q: "¿Cuál es el clima de Formosa?", opts: ["Seco", "Subtropical húmedo", "Templado", "Árido"], ans: 1, exp: "Formosa tiene un clima subtropical húmedo con precipitaciones abundantes.", illus: "nature" }, { q: "¿Qué grupo indígena habita Formosa?", opts: ["Mapuches", "Wichís y Pilagás", "Aymaras", "Diaguitas"], ans: 1, exp: "Los Wichís y Pilagás son grupos indígenas de Formosa.", illus: "culture" }], med: [{ q: "¿Cuándo se creó la provincia de Formosa?", opts: ["1880", "1884", "1955", "1960"], ans: 2, exp: "Formosa se creó como provincia en 1955.", illus: "history" }, { q: "¿Cuál es la población de Formosa?", opts: ["150,000", "200,000", "250,000", "300,000"], ans: 2, exp: "Formosa tiene aproximadamente 230,000 habitantes.", illus: "city" }, { q: "¿Cuántos kilómetros cuadrados tiene Formosa?", opts: ["60,000", "72,000", "85,000", "100,000"], ans: 1, exp: "Formosa tiene una superficie de aproximadamente 72,066 km².", illus: "map" }, { q: "¿Cuál es la población total de Formosa?", opts: ["400,000", "450,000", "500,000", "550,000"], ans: 2, exp: "Formosa tiene una población total de aproximadamente 530,000 habitantes.", illus: "city" }, { q: "¿Qué actividad económica predomina en Formosa?", opts: ["Minería", "Turismo", "Ganadería y agricultura", "Industria"], ans: 2, exp: "La ganadería y la agricultura son las principales actividades de Formosa.", illus: "food" }], hard: [{ q: "¿Qué significa Formosa en latín?", opts: ["Grande", "Hermosa", "Fértil", "Lejana"], ans: 1, exp: "'Formosa' significa 'hermosa' en latín, nombre dado por conquistadores españoles.", illus: "culture" }, { q: "¿Cuál es la altura de Formosa?", opts: ["0-100 m", "100-200 m", "200-300 m", "300-400 m"], ans: 1, exp: "Formosa está ubicada a una altura de 100-200 metros sobre el nivel del mar.", illus: "map" }, { q: "¿Qué tipo de vegetación predomina en Formosa?", opts: ["Bosque seco", "Selva subtropical", "Estepa", "Desierto"], ans: 1, exp: "La selva subtropical es la vegetación predominante en Formosa.", illus: "nature" }, { q: "¿Cuál es el Bañado la Estrella en Formosa?", opts: ["Una ciudad", "Un sistema de humedales", "Un río", "Un parque"], ans: 1, exp: "El Bañado la Estrella es un importante sistema de humedales de Formosa.", illus: "wetland" }, { q: "¿Qué universidad importante está en Formosa?", opts: ["UNaF", "UNPF", "UNFor", "UNFo"], ans: 0, exp: "La Universidad Nacional de Formosa (UNaF) es la principal institución de educación superior.", illus: "culture" }] },
+      "Chubut": { easy: [{ q: "¿Cuál es la capital de Chubut?", opts: ["Rawson", "Puerto Madryn", "Comodrivadavia", "Trelew"], ans: 0, exp: "Rawson es la capital de la provincia de Chubut.", illus: "city" }, { q: "¿Qué caracteriza el litoral de Chubut?", opts: ["Selva", "Playas y ballenas", "Montañas", "Desierto"], ans: 1, exp: "Chubut es famosa por sus playas y la presencia de ballenas francas australes.", illus: "whale" }, { q: "¿En qué región está Chubut?", opts: ["Centro", "Cuyo", "Patagonia", "Noreste"], ans: 2, exp: "Chubut está ubicada en la Patagonia, al sur de Argentina.", illus: "map" }, { q: "¿Qué golfos importantes están en Chubut?", opts: ["Golfo de San Jorge", "Golfo San Matías", "Golfo Nuevo", "Golfo de Penas"], ans: 2, exp: "El Golfo Nuevo es un golfo importante de Chubut.", illus: "beach" }, { q: "¿Qué puerto turístico es importante en Chubut?", opts: ["Puerto Belgrano", "Puerto Madryn", "Puerto Iguazú", "Puerto Rosario"], ans: 1, exp: "Puerto Madryn es el principal puerto turístico de Chubut.", illus: "city" }], med: [{ q: "¿Cuándo se creó la provincia de Chubut?", opts: ["1880", "1884", "1900", "1920"], ans: 2, exp: "Chubut se creó como provincia en 1900.", illus: "history" }, { q: "¿Cuántos kilómetros cuadrados tiene Chubut?", opts: ["200,000", "224,000", "240,000", "260,000"], ans: 1, exp: "Chubut tiene una superficie de aproximadamente 224,686 km².", illus: "map" }, { q: "¿Cuál es la población de Puerto Madryn?", opts: ["60,000", "80,000", "100,000", "120,000"], ans: 1, exp: "Puerto Madryn tiene aproximadamente 80,000 habitantes.", illus: "city" }, { q: "¿Qué ballena es característica de Chubut?", opts: ["Ballena azul", "Ballena jorobada", "Ballena franca austral", "Orca"], ans: 2, exp: "La Ballena Franca Austral es característica de las costas de Chubut.", illus: "whale" }, { q: "¿Cuál es la población total de Chubut?", opts: ["400,000", "450,000", "500,000", "550,000"], ans: 2, exp: "Chubut tiene una población total de aproximadamente 520,000 habitantes.", illus: "city" }], hard: [{ q: "¿En qué época migran las ballenas a Chubut?", opts: ["Verano", "Invierno", "Primavera", "Otoño"], ans: 1, exp: "Las ballenas francas australes llegan a las costas de Chubut en invierno (junio a octubre).", illus: "whale" }, { q: "¿Cuál es la altura de Chubut?", opts: ["0-100 m", "100-300 m", "300-500 m", "500-800 m"], ans: 2, exp: "Chubut está ubicada a diferentes alturas, desde playas al nivel del mar hasta mesetas de 500 metros.", illus: "mountain" }, { q: "¿Qué parque paleontológico importante está en Chubut?", opts: ["Iguazú", "Talampaya", "Perito Moreno", "Bryn Gwyn"], ans: 3, exp: "El Parque Paleontológico Bryn Gwyn tiene importantes fósiles del Paleoceno.", illus: "dinosaur" }, { q: "¿Qué Península importante tiene Chubut?", opts: ["Valdes", "San Blas", "Comodoros", "Rawson"], ans: 0, exp: "La Península Valdés es famosa por su fauna marina incluyendo ballenas, pingüinos y lobos marinos.", illus: "penguin" }, { q: "¿Qué grupo indígena habitaba Chubut?", opts: ["Mapuches", "Tehuelches", "Ranqueles", "Diaguitas"], ans: 1, exp: "Los Tehuelches fueron los principales habitantes prehispánicos de Chubut.", illus: "culture" }] },
+      "San Luis": { easy: [{ q: "¿Cuál es la capital de San Luis?", opts: ["Merlo", "San Luis", "Saladillo", "La Caleta"], ans: 1, exp: "San Luis es la capital de la provincia de San Luis.", illus: "city" }, { q: "¿En qué región está San Luis?", opts: ["Centro", "Cuyo", "Noroeste", "Patagonia"], ans: 1, exp: "San Luis está ubicada en la región de Cuyo, al oeste-centro de Argentina.", illus: "map" }, { q: "¿Qué caracteriza el paisaje de San Luis?", opts: ["Playas", "Llanuras y sierras", "Selva", "Desierto"], ans: 1, exp: "San Luis se caracteriza por sus llanuras y sierras bajas.", illus: "mountain" }, { q: "¿Qué mineral importante se extrae en San Luis?", opts: ["Oro", "Plata", "Cobre", "Todas las anteriores"], ans: 3, exp: "San Luis tiene depósitos de oro, plata y otros minerales.", illus: "factory" }, { q: "¿Cuál es la población aproximada de San Luis?", opts: ["100,000", "130,000", "160,000", "200,000"], ans: 1, exp: "San Luis tiene aproximadamente 130,000 habitantes.", illus: "city" }], med: [{ q: "¿Cuántos kilómetros cuadrados tiene San Luis?", opts: ["70,000", "76,000", "82,000", "90,000"], ans: 1, exp: "San Luis tiene una superficie de aproximadamente 76,748 km².", illus: "map" }, { q: "¿Cuál es la población de la ciudad de San Luis?", opts: ["40,000", "50,000", "60,000", "80,000"], ans: 2, exp: "La ciudad de San Luis tiene aproximadamente 60,000 habitantes.", illus: "city" }, { q: "¿Qué sierra importante está en San Luis?", opts: ["Sierra de Córdoba", "Sierra de Pocho", "Sierra de San Luis", "Sierra Chica"], ans: 2, exp: "La Sierra de San Luis es la elevación más importante de la provincia.", illus: "mountain" }, { q: "¿Cuál es la población total de San Luis?", opts: ["300,000", "350,000", "400,000", "450,000"], ans: 3, exp: "San Luis tiene una población total de aproximadamente 430,000 habitantes.", illus: "city" }, { q: "¿Qué clima tiene San Luis?", opts: ["Subtropical", "Templado", "Árido semiárido", "Tropical"], ans: 2, exp: "San Luis tiene un clima árido a semiárido con inviernos frescos.", illus: "steppe" }], hard: [{ q: "¿Cuándo se creó San Luis como provincia?", opts: ["1880", "1884", "1891", "1900"], ans: 2, exp: "San Luis se creó como provincia en 1891.", illus: "history" }, { q: "¿Cuál es la altura de San Luis?", opts: ["500 m", "650 m", "800 m", "950 m"], ans: 2, exp: "San Luis está ubicada a una altura promedio de 800 metros sobre el nivel del mar.", illus: "mountain" }, { q: "¿Qué río importante está en San Luis?", opts: ["Paraná", "Río V", "Uruguay", "Salado"], ans: 1, exp: "El río V (también llamado Quinto) es un río importante de San Luis.", illus: "nature" }, { q: "¿Qué potencial energético tiene San Luis?", opts: ["Solar", "Eólico", "Hidráulico", "Solar y eólico"], ans: 3, exp: "San Luis tiene importante potencial solar y eólico para generación de energía.", illus: "factory" }, { q: "¿Qué universidad está en San Luis?", opts: ["UNSL", "UNSdL", "UNSOL", "UNLP"], ans: 0, exp: "La Universidad Nacional de San Luis (UNSL) es la principal institución educativa.", illus: "culture" }] },
+      "Catamarca": { easy: [{ q: "¿Cuál es la capital de Catamarca?", opts: ["Andalgalá", "Catamarca", "Belén", "Fiambalá"], ans: 1, exp: "Catamarca es la capital de la provincia de Catamarca.", illus: "city" }, { q: "¿En qué región está Catamarca?", opts: ["Centro", "Cuyo", "Noroeste", "Patagonia"], ans: 2, exp: "Catamarca está ubicada en el noroeste de Argentina.", illus: "map" }, { q: "¿Qué caracteriza el terreno de Catamarca?", opts: ["Playas", "Montañas altas", "Llanuras", "Desierto"], ans: 1, exp: "Catamarca se caracteriza por sus montañas andinas y paisajes montañosos.", illus: "mountain" }, { q: "¿Qué cultivo es importante en Catamarca?", opts: ["Tabaco", "Soja", "Caña de azúcar", "Maíz"], ans: 0, exp: "El tabaco es un cultivo importante en Catamarca.", illus: "food" }, { q: "¿Cuál es la población aproximada de Catamarca?", opts: ["150,000", "200,000", "250,000", "300,000"], ans: 2, exp: "Catamarca tiene aproximadamente 250,000 habitantes.", illus: "city" }], med: [{ q: "¿Cuántos kilómetros cuadrados tiene Catamarca?", opts: ["90,000", "102,000", "115,000", "130,000"], ans: 1, exp: "Catamarca tiene una superficie de aproximadamente 102,602 km².", illus: "map" }, { q: "¿Cuál es la población de la ciudad de Catamarca?", opts: ["70,000", "80,000", "90,000", "110,000"], ans: 2, exp: "La ciudad de Catamarca tiene aproximadamente 99,000 habitantes.", illus: "city" }, { q: "¿Qué montaña importante está en Catamarca?", opts: ["Aconcagua", "San Valentín", "Nevados de Ruiz", "Ojos del Salado"], ans: 3, exp: "El Ojos del Salado (6,893 m) es uno de los volcanes más altos del mundo, en la frontera con Chile.", illus: "mountain" }, { q: "¿Cuál es la población total de Catamarca?", opts: ["400,000", "450,000", "500,000", "550,000"], ans: 3, exp: "Catamarca tiene una población total de aproximadamente 480,000 habitantes.", illus: "city" }, { q: "¿Qué clima tiene Catamarca?", opts: ["Subtropical", "Templado", "Árido", "Tropical"], ans: 2, exp: "Catamarca tiene un clima árido con pocas precipitaciones.", illus: "desert" }], hard: [{ q: "¿Cuándo fue fundada la ciudad de Catamarca?", opts: ["1558", "1683", "1750", "1810"], ans: 1, exp: "La ciudad de Catamarca fue fundada en 1683.", illus: "history" }, { q: "¿Qué significa Catamarca?", opts: ["Pueblo", "Montaña", "Tierra de castigos", "Agua"], ans: 2, exp: "'Catamarca' significa 'tierra de castigos' en lengua quechua.", illus: "culture" }, { q: "¿Qué grupo indígena habitaba Catamarca?", opts: ["Mapuches", "Diaguitas", "Aymaras", "Ranqueles"], ans: 1, exp: "Los Diaguitas fueron los principales habitantes prehispánicos de Catamarca.", illus: "culture" }, { q: "¿Qué mineral importante se extrae en Catamarca?", opts: ["Oro", "Plata", "Litio", "Cobre"], ans: 0, exp: "Catamarca tiene importantes depósitos de oro.", illus: "factory" }, { q: "¿Cuál es el río más importante de Catamarca?", opts: ["Paraná", "Río Salado", "Uruguay", "Río Dorado"], ans: 1, exp: "El Salado del Norte es el río principal que atraviesa Catamarca.", illus: "nature" }] },
+      "La Rioja": { easy: [{ q: "¿Cuál es la capital de La Rioja?", opts: ["Chilecito", "La Rioja", "Arauco", "Chepes"], ans: 1, exp: "La Rioja es la capital de la provincia de La Rioja.", illus: "city" }, { q: "¿En qué región está La Rioja?", opts: ["Centro", "Cuyo", "Noroeste", "Patagonia"], ans: 2, exp: "La Rioja está ubicada en el noroeste de Argentina.", illus: "map" }, { q: "¿Qué cultivo es importante en La Rioja?", opts: ["Tabaco", "Viña", "Algodón", "Caña de azúcar"], ans: 1, exp: "El vino es un cultivo importante en La Rioja.", illus: "wine" }, { q: "¿Qué caracteriza el paisaje de La Rioja?", opts: ["Playas", "Montañas áridas", "Selva", "Llanuras"], ans: 1, exp: "La Rioja se caracteriza por sus montañas áridas y paisajes desérticos.", illus: "mountain" }, { q: "¿Cuál es la población aproximada de La Rioja?", opts: ["150,000", "200,000", "250,000", "300,000"], ans: 1, exp: "La Rioja tiene aproximadamente 200,000 habitantes.", illus: "city" }], med: [{ q: "¿Cuántos kilómetros cuadrados tiene La Rioja?", opts: ["80,000", "89,000", "100,000", "120,000"], ans: 1, exp: "La Rioja tiene una superficie de aproximadamente 89,680 km².", illus: "map" }, { q: "¿Cuál es la población de la ciudad de La Rioja?", opts: ["100,000", "120,000", "140,000", "160,000"], ans: 2, exp: "La ciudad de La Rioja tiene aproximadamente 140,000 habitantes.", illus: "city" }, { q: "¿Qué sierra importante está en La Rioja?", opts: ["Sierra de Famatina", "Sierra de Córdoba", "Sierra Chica", "Sierra del Aconquija"], ans: 0, exp: "La Sierra de Famatina es la elevación más importante de La Rioja.", illus: "mountain" }, { q: "¿Cuál es la población total de La Rioja?", opts: ["300,000", "350,000", "400,000", "450,000"], ans: 1, exp: "La Rioja tiene una población total de aproximadamente 350,000 habitantes.", illus: "city" }, { q: "¿Qué clima tiene La Rioja?", opts: ["Subtropical", "Templado", "Árido", "Tropical"], ans: 2, exp: "La Rioja tiene un clima árido con temperaturas extremas.", illus: "desert" }], hard: [{ q: "¿Cuándo fue fundada la ciudad de La Rioja?", opts: ["1591", "1630", "1680", "1750"], ans: 0, exp: "La ciudad de La Rioja fue fundada en 1591.", illus: "history" }, { q: "¿Cuál es la altura de La Rioja?", opts: ["400 m", "600 m", "800 m", "1000 m"], ans: 2, exp: "La Rioja está ubicada a una altura de aproximadamente 800 metros.", illus: "mountain" }, { q: "¿Qué grupo indígena habitaba La Rioja?", opts: ["Mapuches", "Diaguitas", "Aymaras", "Ranqueles"], ans: 1, exp: "Los Diaguitas fueron los principales habitantes prehispánicos de La Rioja.", illus: "culture" }, { q: "¿Cuál es el río más importante de La Rioja?", opts: ["Paraná", "Río Bermejo", "Uruguay", "Río Dorado"], ans: 1, exp: "El Río Bermejo es un río importante de La Rioja.", illus: "nature" }, { q: "¿Qué parque importante está en La Rioja?", opts: ["Iguazú", "Talampaya", "Perito Moreno", "Nahuel Huapi"], ans: 1, exp: "El Parque Nacional Talampaya es un importante parque con formaciones geológicas únicas.", illus: "nature" }] },
+      "La Pampa": { easy: [{ q: "¿Cuál es la capital de La Pampa?", opts: ["General Pico", "Santa Rosa", "Toay", "Quemú Quemú"], ans: 1, exp: "Santa Rosa es la capital de la provincia de La Pampa.", illus: "city" }, { q: "¿En qué región está La Pampa?", opts: ["Centro", "Cuyo", "Noreste", "Patagonia"], ans: 0, exp: "La Pampa está ubicada en el Centro de Argentina.", illus: "map" }, { q: "¿Qué caracteriza el terreno de La Pampa?", opts: ["Montañas", "Llanuras", "Desierto", "Selva"], ans: 1, exp: "La Pampa se caracteriza por sus llanuras fértiles.", illus: "steppe" }, { q: "¿Qué actividad económica predomina en La Pampa?", opts: ["Minería", "Ganadería y agricultura", "Turismo", "Industria"], ans: 1, exp: "La ganadería y la agricultura son las principales actividades de La Pampa.", illus: "food" }, { q: "¿Cuál es la población aproximada de La Pampa?", opts: ["200,000", "280,000", "350,000", "400,000"], ans: 1, exp: "La Pampa tiene aproximadamente 280,000 habitantes.", illus: "city" }], med: [{ q: "¿Cuántos kilómetros cuadrados tiene La Pampa?", opts: ["140,000", "143,000", "160,000", "180,000"], ans: 1, exp: "La Pampa tiene una superficie de aproximadamente 143,440 km².", illus: "map" }, { q: "¿Cuál es la población de Santa Rosa?", opts: ["50,000", "60,000", "70,000", "100,000"], ans: 2, exp: "Santa Rosa tiene aproximadamente 75,000 habitantes.", illus: "city" }, { q: "¿Qué río importante limita con La Pampa?", opts: ["Paraná", "Río Colorado", "Uruguay", "Salado"], ans: 1, exp: "El río Colorado marca el límite sur de La Pampa con Río Negro.", illus: "nature" }, { q: "¿Cuál es la población total de La Pampa?", opts: ["250,000", "300,000", "350,000", "400,000"], ans: 1, exp: "La Pampa tiene una población total de aproximadamente 300,000 habitantes.", illus: "city" }, { q: "¿Qué cultivo es importante en La Pampa?", opts: ["Viña", "Soja", "Tabaco", "Caña de azúcar"], ans: 1, exp: "La soja es un cultivo importante en La Pampa.", illus: "food" }], hard: [{ q: "¿Cuándo se creó La Pampa como provincia?", opts: ["1880", "1884", "1952", "1960"], ans: 2, exp: "La Pampa se creó como provincia en 1952.", illus: "history" }, { q: "¿Cuál es la altura de La Pampa?", opts: ["100 m", "200 m", "300 m", "400 m"], ans: 1, exp: "La Pampa está ubicada a una altura promedio de 200 metros sobre el nivel del mar.", illus: "map" }, { q: "¿Cuál es el río más importante de La Pampa?", opts: ["Paraná", "Río Atuel", "Uruguay", "Río Colorado"], ans: 1, exp: "El Río Atuel es un río importante de La Pampa.", illus: "nature" }, { q: "¿Qué tipo de clima tiene La Pampa?", opts: ["Subtropical", "Templado", "Árido", "Tropical"], ans: 1, exp: "La Pampa tiene un clima templado con inviernos y veranos moderados.", illus: "steppe" }, { q: "¿Cuál es la importancia agrícola de La Pampa?", opts: ["10% del total nacional", "20% del total nacional", "30% del total nacional", "40% del total nacional"], ans: 2, exp: "La Pampa produce aproximadamente el 30% de la producción agrícola nacional.", illus: "food" }] },
+      "Santa Cruz": { easy: [{ q: "¿Cuál es la capital de Santa Cruz?", opts: ["Puerto Santa Cruz", "Río Gallegos", "El Calafate", "Comodrivadavia"], ans: 1, exp: "Río Gallegos es la capital de la provincia de Santa Cruz.", illus: "city" }, { q: "¿Qué caracteriza el paisaje de Santa Cruz?", opts: ["Selva", "Montañas altas", "Glaciares y estepa", "Desierto cálido"], ans: 2, exp: "Santa Cruz se caracteriza por sus glaciares y paisaje patagónico de estepa.", illus: "glacier" }, { q: "¿En qué región está Santa Cruz?", opts: ["Centro", "Cuyo", "Patagonia", "Noreste"], ans: 2, exp: "Santa Cruz está ubicada en la Patagonia, en el extremo sur de Argentina.", illus: "map" }, { q: "¿Qué glaciar importante está en Santa Cruz?", opts: ["Perito Moreno", "Upsala", "Onelli", "Glacier del Hielo"], ans: 0, exp: "El Glaciar Perito Moreno es el glaciar más famoso de Santa Cruz y de Argentina.", illus: "glacier" }, { q: "¿Cuál es la población aproximada de Santa Cruz?", opts: ["200,000", "300,000", "400,000", "500,000"], ans: 1, exp: "Santa Cruz tiene aproximadamente 330,000 habitantes.", illus: "city" }], med: [{ q: "¿Cuántos kilómetros cuadrados tiene Santa Cruz?", opts: ["240,000", "243,000", "260,000", "280,000"], ans: 1, exp: "Santa Cruz tiene una superficie de aproximadamente 243,943 km².", illus: "map" }, { q: "¿Cuál es la población de Río Gallegos?", opts: ["80,000", "100,000", "120,000", "140,000"], ans: 2, exp: "Río Gallegos tiene aproximadamente 120,000 habitantes.", illus: "city" }, { q: "¿Qué destino turístico es importante en Santa Cruz?", opts: ["El Calafate", "El Chaltén", "Los Glaciares", "Todos los anteriores"], ans: 3, exp: "Los glaciares, El Calafate y El Chaltén son destinos turísticos importantes de Santa Cruz.", illus: "glacier" }, { q: "¿Cuál es la población total de Santa Cruz?", opts: ["250,000", "300,000", "350,000", "400,000"], ans: 2, exp: "Santa Cruz tiene una población total de aproximadamente 350,000 habitantes.", illus: "city" }, { q: "¿Qué actividad económica es importante en Santa Cruz?", opts: ["Minería", "Ganadería", "Turismo", "Petróleo"], ans: 3, exp: "El petróleo, la ganadería y el turismo son actividades económicas importantes en Santa Cruz.", illus: "factory" }], hard: [{ q: "¿En qué año se formó el Parque Nacional de Los Glaciares?", opts: ["1937", "1950", "1965", "1980"], ans: 0, exp: "El Parque Nacional Los Glaciares se creó en 1937.", illus: "history" }, { q: "¿Cuál es la altura máxima de Santa Cruz?", opts: ["2000 m", "3000 m", "4000 m", "4000+ m"], ans: 3, exp: "La altura máxima de Santa Cruz supera los 4,000 metros en la Cordillera de los Andes.", illus: "mountain" }, { q: "¿Qué montaña importante está en Santa Cruz?", opts: ["Aconcagua", "Fitz Roy", "San Valentín", "Nevados"], ans: 1, exp: "El Fitz Roy es una montaña icónica de Santa Cruz con 3,405 metros de altura.", illus: "mountain" }, { q: "¿Cuál es la temperatura promedio de Santa Cruz?", opts: ["5-10°C", "10-15°C", "15-20°C", "20-25°C"], ans: 0, exp: "Santa Cruz tiene temperaturas promedio de 5-10°C por su ubicación austral.", illus: "steppe" }, { q: "¿Qué grupo indígena habitaba Santa Cruz?", opts: ["Mapuches", "Tehuelches", "Ranqueles", "Diaguitas"], ans: 1, exp: "Los Tehuelches fueron los principales habitantes prehispánicos de Santa Cruz.", illus: "culture" }] },
+      "Tierra del Fuego": { easy: [{ q: "¿Cuál es la capital de Tierra del Fuego?", opts: ["Ushuaia", "Río Grande", "Tolhuin", "Puerto Williams"], ans: 0, exp: "Ushuaia es la capital de Tierra del Fuego.", illus: "city" }, { q: "¿Qué caracteriza Tierra del Fuego?", opts: ["Selva húmeda", "Desierto", "Región fría y subantártica", "Playas tropicales"], ans: 2, exp: "Tierra del Fuego es conocida por su clima frío y subantártico.", illus: "glacier" }, { q: "¿Dónde está Tierra del Fuego?", opts: ["Centro de Argentina", "Sur de Argentina", "Extremo sureste de Argentina", "Extremo noroeste"], ans: 2, exp: "Tierra del Fuego está en el extremo sureste de Argentina.", illus: "map" }, { q: "¿Qué océanos rodean Tierra del Fuego?", opts: ["Atlántico e Índico", "Atlántico y Pacífico", "Pacífico e Índico", "Solo Atlántico"], ans: 1, exp: "Tierra del Fuego está rodeada por el Océano Atlántico al este y el Pacífico al oeste.", illus: "beach" }, { q: "¿Cuál es la población aproximada de Tierra del Fuego?", opts: ["80,000", "120,000", "160,000", "200,000"], ans: 2, exp: "Tierra del Fuego tiene aproximadamente 160,000 habitantes.", illus: "city" }], med: [{ q: "¿Cuántos kilómetros cuadrados tiene Tierra del Fuego?", opts: ["21,000", "23,000", "25,000", "27,000"], ans: 1, exp: "Tierra del Fuego tiene una superficie de aproximadamente 23,000 km².", illus: "map" }, { q: "¿Cuál es la población de Ushuaia?", opts: ["40,000", "60,000", "80,000", "100,000"], ans: 2, exp: "Ushuaia tiene aproximadamente 80,000 habitantes.", illus: "city" }, { q: "¿Cuándo se creó Tierra del Fuego como provincia?", opts: ["1884", "1920", "1990", "2000"], ans: 2, exp: "Tierra del Fuego se creó como provincia en 1990.", illus: "history" }, { q: "¿Cuál es la población total de Tierra del Fuego?", opts: ["100,000", "130,000", "160,000", "200,000"], ans: 2, exp: "Tierra del Fuego tiene una población total de aproximadamente 160,000 habitantes.", illus: "city" }, { q: "¿Qué Parque Nacional importante está en Tierra del Fuego?", opts: ["Iguazú", "Aconcagua", "Tierra del Fuego", "Perito Moreno"], ans: 2, exp: "El Parque Nacional Tierra del Fuego es un importante parque en la provincia.", illus: "nature" }], hard: [{ q: "¿Cuál es la latitud de Tierra del Fuego?", opts: ["50°S", "54°S", "60°S", "66°S"], ans: 1, exp: "Tierra del Fuego está ubicada aproximadamente entre 54° y 56° de latitud sur.", illus: "map" }, { q: "¿Cuál es la temperatura promedio en Ushuaia?", opts: ["0-5°C", "5-10°C", "10-15°C", "15-20°C"], ans: 0, exp: "Ushuaia tiene una temperatura promedio de 0-5°C durante todo el año.", illus: "glacier" }, { q: "¿Qué montaña importante está en Tierra del Fuego?", opts: ["Aconcagua", "Fitz Roy", "Olivia", "San Valentín"], ans: 2, exp: "El Olivia es la montaña más alta de Tierra del Fuego con 1,318 metros.", illus: "mountain" }, { q: "¿En qué año llegó Magallanes a Tierra del Fuego?", opts: ["1520", "1580", "1620", "1700"], ans: 0, exp: "Fernando de Magallanes llegó a Tierra del Fuego en 1520 durante su viaje alrededor del mundo.", illus: "history" }, { q: "¿Qué grupo indígena habitaba Tierra del Fuego?", opts: ["Mapuches", "Yámanas", "Ranqueles", "Diaguitas"], ans: 1, exp: "Los Yámanas fueron los principales habitantes originarios de Tierra del Fuego.", illus: "culture" }] }
+    };
+
+    Object.assign(QUESTIONS, lastProvinces);
+
+    // ============ ESTADO GLOBAL ============
+    let st = {
+      diff: 'easy',
+      totalPts: 0,
+      totalAns: 0,
+      totalCor: 0,
+      provDone: {},
+      currentProv: null,
+      curQ: 0,
+      answered: false,
+      timerInt: null,
+      timeLeft: 30,
+      provPts: 0,
+      provCor: 0,
+      provTimes: [],
+      streak: 0,
+      maxStreak: 0,
+      qStartTime: 0,
+      leaderboard: [],
+      pendingScore: 0,
+      provLastResult: {}  // { "Buenos Aires_easy": { pts, ans, cor } }
+    };
+
+    // ============ FUNCIONES PRINCIPALES ============
+
+    function showTab(t) {
+      clearInterval(st.timerInt);
+      // Activar tab visual
+      document.querySelectorAll('.tab').forEach(btn => btn.classList.remove('active'));
+      const tabBtn = document.querySelector(`[data-tab="${t}"]`);
+      if (tabBtn) tabBtn.classList.add('active');
+      // Mostrar pantalla correcta
+      show(t);
+      renderGrid();
+      if (t === 'rank') renderLB();
+      if (t === 'stats') renderStats();
+    }
+
+    function setDiff(d) {
+      st.diff = d;
+      document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
+      document.querySelector(`.diff-btn.${d}`).classList.add('selected');
+      renderGrid();
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById('provincesGrid');
+      grid.innerHTML = '';
+      PROVINCES.forEach(prov => {
+        const btn = document.createElement('button');
+        btn.className = 'province-btn';
+        const key = `${prov.name}_${st.diff}`;
+        if (st.provDone[key]) {
+          btn.classList.add(`completed-${st.diff}`);
+        }
+        btn.innerHTML = `
+          <div class="province-emoji">${prov.emoji}</div>
+          <div class="province-name">${prov.name}</div>
+          <div class="province-progress">${st.provDone[key] ? '✓ Completado' : '5 preg · hasta 20 pts'}</div>
+        `;
+        btn.onclick = () => startProv(prov.name);
+        grid.appendChild(btn);
+      });
+      updateScoreBar();
+    }
+
+    function updateScoreBar() {
+      document.getElementById('totalScore').textContent = st.totalPts;
+      let completed = Object.keys(st.provDone).filter(k => st.provDone[k]).length / 3;
+      document.getElementById('completedCount').textContent = Math.floor(completed) + '/24';
+      let pct = st.totalAns > 0 ? Math.round(100 * st.totalCor / st.totalAns) : 0;
+      document.getElementById('correctPercent').textContent = pct + '%';
+    }
+
+    function startProv(name) {
+      // Si ya hubo un intento anterior en esta provincia+dificultad, deshacer su aporte a los totales
+      const key = `${name}_${st.diff}`;
+      const prev = st.provLastResult[key];
+      if (prev) {
+        st.totalPts -= prev.pts;
+        st.totalAns -= prev.ans;
+        st.totalCor -= prev.cor;
+      }
+
+      st.currentProv = name;
+      st.curQ = 0;
+      st.answered = false;
+      st.provPts = 0;
+      st.provCor = 0;
+      st.provTimes = [];
+      st.streak = 0;
+      st.maxStreak = 0;
+      show('question');
+      renderQuestion();
+      startTimer();
+    }
+
+    function show(s) {
+      document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+      document.getElementById(s).classList.add('active');
+    }
+
+    function goHome() {
+      clearInterval(st.timerInt);
+      // Restaurar tab Provincias activo
+      document.querySelectorAll('.tab').forEach(btn => btn.classList.remove('active'));
+      const homeTab = document.querySelector('[data-tab="home"]');
+      if (homeTab) homeTab.classList.add('active');
+      show('home');
+      renderGrid();
+    }
+
+    function renderQuestion() {
+      const questions = QUESTIONS[st.currentProv][st.diff];
+      const q = questions[st.curQ];
+
+      document.getElementById('qProvinceName').textContent = st.currentProv;
+      document.getElementById('qDiffBadge').textContent = st.diff === 'easy' ? 'Fácil' : st.diff === 'med' ? 'Medio' : 'Difícil';
+      document.getElementById('qDiffBadge').className = `difficulty-badge ${st.diff}`;
+      document.getElementById('qProgressText').textContent = `Pregunta ${st.curQ + 1} de 5`;
+      document.getElementById('qProgressBar').style.width = ((st.curQ + 1) / 5 * 100) + '%';
+
+      document.getElementById('questionText').textContent = q.q;
+
+      const opts = document.getElementById('optionsContainer');
+      opts.innerHTML = '';
+      q.opts.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.disabled = st.answered;
+        btn.innerHTML = `<div class="option-letter">${String.fromCharCode(65 + i)}</div><div class="option-text">${opt}</div>`;
+        btn.onclick = () => answer(i, q, btn);
+        opts.appendChild(btn);
+      });
+
+      document.getElementById('feedbackContainer').innerHTML = '';
+      document.getElementById('nextBtn').style.display = 'none';
+      st.qStartTime = Date.now();
+    }
+
+    function startTimer() {
+      st.timeLeft = 30;
+      updateTimerUI();
+      clearInterval(st.timerInt);
+      st.timerInt = setInterval(() => {
+        st.timeLeft--;
+        updateTimerUI();
+        if (st.timeLeft <= 0) {
+          clearInterval(st.timerInt);
+          timeOut();
+        }
+      }, 1000);
+    }
+
+    function updateTimerUI() {
+      const pct = (st.timeLeft / 30) * 100;
+      const fill = document.getElementById('timerFill');
+      fill.style.width = pct + '%';
+      fill.classList.remove('warning', 'danger');
+      if (st.timeLeft <= 6) fill.classList.add('danger');
+      else if (st.timeLeft <= 15) fill.classList.add('warning');
+      document.getElementById('timerText').textContent = st.timeLeft;
+    }
+
+    function answer(idx, q, btn) {
+      if (st.answered) return;
+      st.answered = true;
+      clearInterval(st.timerInt);
+
+      const elapsed = Math.round((30000 - (Date.now() - st.qStartTime)) / 1000);
+      st.provTimes.push(Math.max(0, elapsed));
+
+      document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+
+      const isCorrect = idx === q.ans;
+      const btns = document.querySelectorAll('.option-btn');
+
+      if (isCorrect) {
+        btns[idx].classList.add('correct');
+        st.provCor++;
+        st.totalCor++;
+        st.streak++;
+        if (st.streak > st.maxStreak) st.maxStreak = st.streak;
+
+        let pts = st.diff === 'easy' ? 5 : st.diff === 'med' ? 10 : 20;
+        if (elapsed < 10) pts += 3;
+        else if (elapsed < 20) pts += 1;
+        st.provPts += pts;
+        st.totalPts += pts;
+
+        document.getElementById('feedbackContainer').innerHTML = `
+          <div class="feedback correct">
+            <div class="feedback-title">✅ ¡Correcto!</div>
+            <div>+${pts} puntos</div>
+            <div style="font-size:12px; margin-top:4px;">${q.exp}</div>
+          </div>
+        `;
+      } else {
+        btns[idx].classList.add('incorrect');
+        btns[q.ans].classList.add('correct');
+        st.streak = 0;
+
+        document.getElementById('feedbackContainer').innerHTML = `
+          <div class="feedback incorrect">
+            <div class="feedback-title">❌ Incorrecto</div>
+            <div style="font-size:12px; margin-top:4px;">${q.exp}</div>
+          </div>
+        `;
+      }
+
+      st.totalAns++;
+      document.getElementById('nextBtn').style.display = 'block';
+    }
+
+    function timeOut() {
+      if (st.answered) return;
+      st.answered = true;
+      st.streak = 0;
+      st.totalAns++;
+
+      document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+      const q = QUESTIONS[st.currentProv][st.diff][st.curQ];
+      document.querySelectorAll('.option-btn')[q.ans].classList.add('correct');
+
+      document.getElementById('feedbackContainer').innerHTML = `
+        <div class="feedback timeout">
+          <div class="feedback-title">⏱ ¡Tiempo agotado!</div>
+          <div style="font-size:12px; margin-top:4px;">${q.exp}</div>
+        </div>
+      `;
+
+      document.getElementById('nextBtn').style.display = 'block';
+    }
+
+    function nextQuestion() {
+      st.curQ++;
+      if (st.curQ < 5) {
+        st.answered = false;
+        renderQuestion();
+        startTimer();
+      } else {
+        showResult();
+      }
+    }
+
+    function showResult() {
+      const prov = st.currentProv;
+      const key = `${prov}_${st.diff}`;
+      st.provDone[key] = true;
+      st.pendingScore = st.provPts;
+
+      // Guardar resultado de este intento para poder deshacerlo si reintenta
+      st.provLastResult[key] = { pts: st.provPts, ans: 5, cor: st.provCor };
+
+      const cor = st.provCor;
+      let emoji, title, stars;
+      if (cor === 5) {
+        emoji = '🏆';
+        title = '¡Perfecto!';
+        stars = '⭐⭐⭐⭐⭐';
+      } else if (cor >= 4) {
+        emoji = '⭐';
+        title = '¡Muy bien!';
+        stars = '⭐⭐⭐⭐';
+      } else if (cor >= 2) {
+        emoji = '💪';
+        title = 'A mejorar';
+        stars = '⭐⭐⭐';
+      } else {
+        emoji = '📚';
+        title = 'Seguí estudiando';
+        stars = '⭐⭐';
+      }
+
+      document.getElementById('resultEmoji').textContent = emoji;
+      document.getElementById('resultTitle').textContent = title;
+      document.getElementById('resultStars').textContent = stars;
+      document.getElementById('resultPoints').textContent = `+${st.provPts} pts`;
+      document.getElementById('resultCorrect').textContent = `${cor}/5`;
+
+      const avgTime = Math.round(st.provTimes.reduce((a, b) => a + b, 0) / 5);
+      document.getElementById('resultAvgTime').textContent = avgTime + 's';
+      document.getElementById('resultStreak').textContent = st.maxStreak + '🔥';
+      document.getElementById('resultTotal').textContent = st.provPts + ' pts';
+
+      show('result');
+    }
+
+    function saveAndAddToLB() {
+      const nameInput = document.getElementById('nameInput');
+      const name = nameInput.value.trim() || 'Anónimo';
+      addToLeaderboard(name, st.pendingScore, st.diff, new Date().toLocaleDateString());
+      nameInput.value = '';
+      renderLB();
+      showTab('rank');
+    }
+
+    function quickAddScore() {
+      const nameInput = document.getElementById('nameInput');
+      const name = nameInput.value.trim();
+      if (name) {
+        addToLeaderboard(name, st.totalPts, st.diff, new Date().toLocaleDateString());
+        nameInput.value = '';
+        renderLB();
+      }
+    }
+
+    function addToLeaderboard(name, pts, diff, date) {
+      st.leaderboard.push({ name, pts, diff, date });
+      st.leaderboard.sort((a, b) => b.pts - a.pts);
+      if (st.leaderboard.length > 20) st.leaderboard = st.leaderboard.slice(0, 20);
+    }
+
+    function renderLB() {
+      const podium = st.leaderboard.slice(0, 3);
+      for (let i = 0; i < 3; i++) {
+        const p = podium[i];
+        document.getElementById(`pos${i+1}`).textContent = p ? p.name : '-';
+        document.getElementById(`pos${i+1}pts`).textContent = p ? p.pts + ' pts' : '-';
+      }
+
+      const list = document.getElementById('leaderboardList');
+      list.innerHTML = '';
+      st.leaderboard.forEach((entry, idx) => {
+        const row = document.createElement('div');
+        row.className = 'leaderboard-row';
+        row.innerHTML = `
+          <div class="leaderboard-pos">${idx + 1}</div>
+          <div class="leaderboard-info">
+            <div class="leaderboard-name">${entry.name}</div>
+            <div class="leaderboard-meta">${entry.diff === 'easy' ? 'Fácil' : entry.diff === 'med' ? 'Medio' : 'Difícil'} · ${entry.date}</div>
+          </div>
+          <div class="leaderboard-pts">${entry.pts}</div>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    function renderStats() {
+      const easyDone = Object.keys(st.provDone).filter(k => k.endsWith('_easy') && st.provDone[k]).length;
+      const medDone = Object.keys(st.provDone).filter(k => k.endsWith('_med') && st.provDone[k]).length;
+      const hardDone = Object.keys(st.provDone).filter(k => k.endsWith('_hard') && st.provDone[k]).length;
+
+      document.getElementById('totalPtsMetric').textContent = st.totalPts;
+      const pct = st.totalAns > 0 ? Math.round(100 * st.totalCor / st.totalAns) : 0;
+      document.getElementById('correctPercentMetric').textContent = pct + '%';
+      document.getElementById('questionsPlayedMetric').textContent = st.totalAns;
+      document.getElementById('questionsCorrectMetric').textContent = st.totalCor;
+
+      document.getElementById('easyCount').textContent = easyDone + '/24';
+      document.getElementById('easyBarFill').style.width = (easyDone / 24 * 100) + '%';
+
+      document.getElementById('medCount').textContent = medDone + '/24';
+      document.getElementById('medBarFill').style.width = (medDone / 24 * 100) + '%';
+
+      document.getElementById('hardCount').textContent = hardDone + '/24';
+      document.getElementById('hardBarFill').style.width = (hardDone / 24 * 100) + '%';
+    }
+
+    // ============ EVENT LISTENERS ============
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        showTab(e.currentTarget.dataset.tab);
+      });
+    });
+
+    // Inicialización
+    renderGrid();
+  </script>
+</body>
+</html>

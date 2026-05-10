@@ -1,0 +1,12 @@
+{
+  "name": "argentrivia",
+  "version": "1.0.0",
+  "description": "Juego de trivia educativo sobre las provincias argentinas",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
